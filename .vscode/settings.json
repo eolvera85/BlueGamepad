@@ -1,0 +1,27 @@
+{
+  "C_Cpp.intelliSenseEngine": "Tag Parser",
+  "idf.flashType": "UART",
+  "idf.portWin": "COM3",
+  "idf.adapterTargetName": "esp32",
+  "files.associations": {
+    "*.inc": "c",
+    "btm_api.h": "c",
+    "complex": "c",
+    "ble.h": "c",
+    "array": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "regex": "cpp",
+    "typeinfo": "cpp"
+  },
+  "idf.openOcdConfigs": [
+    "interface/ftdi/esp32_devkitj_v1.cfg",
+    "target/esp32.cfg"
+  ]
+}
