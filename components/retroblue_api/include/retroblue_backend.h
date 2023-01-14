@@ -15,6 +15,8 @@
 #include "esp_bt.h"
 #include "esp_err.h"
 #include "esp_system.h"
+#include "esp_random.h"
+#include "esp_mac.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "esp_gap_bt_api.h"

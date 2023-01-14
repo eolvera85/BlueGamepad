@@ -4,6 +4,7 @@
 #include "driver/adc.h"
 #include "esp_system.h"
 #include "sdkconfig.h"
+#include "soc/gpio_reg.h"
 
 #include "GPIOs.h"
 #include "Buttons.h"

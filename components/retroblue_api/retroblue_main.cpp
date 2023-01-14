@@ -49,8 +49,8 @@ void button_task()
 
     g_button_data.b_right   = read_button(regread, GPIO_BTN_CIRCLE) && !read_button(regread, GPIO_BTN_START);       //Only A
     g_button_data.b_down    = read_button(regread, GPIO_BTN_CROSS) && !read_button(regread, GPIO_BTN_START);        //Only B
-    g_button_data.b_up      = read_button(regread, GPIO_BTN_TRIANGLE);
-    g_button_data.b_left    = read_button(regread, GPIO_BTN_SQUARE);
+    g_button_data.b_up      = read_button(regread, GPIO_BTN_TRIANGLE);                                              // **N64 C-LEFT
+    g_button_data.b_left    = read_button(regread, GPIO_BTN_SQUARE);                                                // **N64 C-UP
 
     g_button_data.t_l       = (read_button(regread, GPIO_BTN_L1) && !read_button(regread, GPIO_BTN_START)) ||       // Only L
                             (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_CROSS));         // L = (+) + B To NES 
@@ -60,10 +60,11 @@ void button_task()
 
     if (TRIGGER_TYPE == DIGITAL)
     {
-        g_button_data.t_zl      = !gpio_get_level(GPIO_BTN_L2) ||                                                   // Only ZL
+        g_button_data.t_zl      = !gpio_get_level(GPIO_BTN_L2) ||                                                   // Only ZL **N64 ZL (Z)
                                 (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_L1));        // ZL = (+) + L To SNES
-        g_button_data.t_zr      = !gpio_get_level(GPIO_BTN_R2) ||                                                   // Only ZR
-                                (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));        // ZR = (+) + R To SNES
+        g_button_data.t_zr      = (JOSTICK_TYPE == N64_J) ? !gpio_get_level(GPIO_BTN_R2) :                          // **N64 C-DOWN
+                                !gpio_get_level(GPIO_BTN_R2) ||                                                     // Only ZR
+                                (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));        // ZR = (+) + R To SNES/N64
     }
     else
     {
@@ -73,7 +74,7 @@ void button_task()
                                 (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));        // ZR = (+) + R To SNES/N64
     }
 
-    g_button_data.b_select  = read_button(regread, GPIO_BTN_SELECT);
+    g_button_data.b_select  = read_button(regread, GPIO_BTN_SELECT);                                                // **N64 C-RIGHT
     g_button_data.b_start   = read_button(regread, GPIO_BTN_START) && 
                             !read_button(regread, GPIO_BTN_CIRCLE) && 
                             !read_button(regread, GPIO_BTN_CROSS) && 
@@ -87,8 +88,9 @@ void button_task()
     g_button_data.b_home    = read_button(regread, GPIO_BTN_HOME) ||                                                // Only Home
                             (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_DPAD_RIGHT));    // Home = (+) + RIGHT
 
-    g_button_data.sb_left   = read_button(regread, GPIO_BTN_L3);
-    g_button_data.sb_right  = read_button(regread, GPIO_BTN_R3);
+    g_button_data.sb_left   = JOSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_L3) : 
+                            (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));            // **N64 ZR
+    g_button_data.sb_right  = JOSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_R3) : false;                 
 
     regread = 0;
 }

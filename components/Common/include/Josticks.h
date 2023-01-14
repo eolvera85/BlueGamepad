@@ -6,10 +6,6 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-//ENUMS
-enum JOSTICK_TYPE_E { PRO_J = 1, N64_J = 2 };
-enum TRIGGER_TYPE_E { DIGITAL = 0, ANALOG = 1 };
-
 // Max, Min  joystick potentiometers
 #define ANALOG_MIN              0
 #define ANALOG_MAX              4095
@@ -22,6 +18,7 @@ enum TRIGGER_TYPE_E { DIGITAL = 0, ANALOG = 1 };
 
 #define JOYSTICK_MIN                0 
 #define JOYSTICK_MAX                32767
+#define JOYSTICK_CEN                16384
 
 #define N64_JOSTICK_MAX             39
 #define N64_JOSTICK_MIN             -39
@@ -32,35 +29,6 @@ enum TRIGGER_TYPE_E { DIGITAL = 0, ANALOG = 1 };
 #define NUM_OF_JOSTICKS         2
 #define NUM_OF_TRIGGERS         2
 
-// ************ From here change values to configure the controls ************
-// Begin Parameters Controller Type (Change *Jostick PRO/N64 - Buttons L2 R2  )
-#define JOSTICK_TYPE            N64_J       // VALUES: Enum JOSTICK_TYPE_E
-
-// Josticks Switch
-#define RBS_REVERSE_AXIS_LX     false
-#define RBS_REVERSE_AXIS_LY     true
-#define RBS_REVERSE_AXIS_RX     true
-#define RBS_REVERSE_AXIS_RY     false
-// Josticks Switch N64
-#define RBS_N64_REVERSE_AXIS_LX     false
-#define RBS_N64_REVERSE_AXIS_LY     false
-
-// Josticks BleGamepad
-#define BLE_REVERSE_AXIS_LX     false
-#define BLE_REVERSE_AXIS_LY     false
-#define BLE_REVERSE_AXIS_RX     true
-#define BLE_REVERSE_AXIS_RY     true
-// Josticks BleGamepad N64
-#define BLE_N64_REVERSE_AXIS_LX     false
-#define BLE_N64_REVERSE_AXIS_LY     true
-
-// Triggers
-#define TRIGGER_TYPE            DIGITAL      // VALUES: Enum TRIGGER_TYPE_E
-#define REPORT_TRIGGERS_AS      DIGITAL     // VALUES: Enum TRIGGER_TYPE_E
-#define REVERSE_TRIGGER_L       true
-#define REVERSE_TRIGGER_R       true
-// End Parameters
-// *******************************************************************************
 
 struct josticks_s
 {

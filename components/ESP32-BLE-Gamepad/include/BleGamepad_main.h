@@ -9,6 +9,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "soc/gpio_reg.h"
 
 #include "BleGamepad.h"
 #include "BleGamepadConfiguration.h"

@@ -26,11 +26,8 @@ uint16_t read_jostick_retroblue(adc1_channel_t adc_channel, bool reverse_axis)
 
 int16_t read_joystick_n64(int pot_value, bool reverse_axis)
 {
-    //uint32_t raw = read_jostick_n64_retroblue(pot_value, reverse_axis);
-    //return (int16_t)map(raw, ANALOG_MIN, ANALOG_MAX, JOYSTICK_MIN, JOYSTICK_MAX);
-
     if (pot_value >= N64_JOSTICK_DEADZONE_MIN && pot_value <= N64_JOSTICK_DEADZONE_MAX)
-        pot_value = 0;
+        return JOYSTICK_CEN; //pot_value = 0;
 
     if (reverse_axis)
         return (int16_t)map(pot_value, N64_JOSTICK_MIN, N64_JOSTICK_MAX, JOYSTICK_MAX, JOYSTICK_MIN);

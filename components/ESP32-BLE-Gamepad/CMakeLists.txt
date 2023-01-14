@@ -5,7 +5,7 @@ set(srcs "BleConnectionStatus.cpp"
 
 set(incde "include")        
 
-set(reqrs "esp-nimble-cpp" "Common")
+set(reqrs "esp-nimble-cpp" "Common" "driver")
 
 idf_component_register(SRCS "${srcs}"
              INCLUDE_DIRS "${incde}"

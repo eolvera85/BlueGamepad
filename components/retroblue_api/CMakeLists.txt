@@ -10,5 +10,5 @@ set(reqrs "Common")
 
 idf_component_register(SRCS "${srcs}"
              INCLUDE_DIRS "${incde}"
-             REQUIRES "${reqrs}" esp32 bt)
+             REQUIRES "${reqrs}")
 
