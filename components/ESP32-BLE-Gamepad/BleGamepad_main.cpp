@@ -13,7 +13,7 @@ signed char previous_dpad = DPAD_CENTERED;
 
 jostick_64_s jostick64 = 
 {
-    "Jostick L", 0, 0, BLE_N64_REVERSE_AXIS_LX, 0, 0, BLE_REVERSE_AXIS_LY
+    "Jostick L", JOYSTICK_CEN, JOYSTICK_CEN, BLE_N64_REVERSE_AXIS_LX, 0, 0, BLE_REVERSE_AXIS_LY
 };
 
 buttons_s buttons[NUM_PHYSICAL_BTNS] = 
@@ -39,10 +39,24 @@ buttons_s buttons[NUM_PHYSICAL_BTNS] =
     { "Home", GPIO_BTN_HOME, BTN_NUM_Z, false, false }
 };
 
+buttons64_s buttons64[NUM_PHYSICAL_BTNS_64] = 
+{
+    { "A", GPIO_BTN_CIRCLE, BTN_NUM_A, false, false, true },
+    { "B", GPIO_BTN_CROSS, BTN_NUM_B, false, false, true },
+    { "Start", GPIO_BTN_START, BTN_NUM_Z, false, false, true },    
+    { "Z", GPIO_BTN_L2, BTN_NUM_L2, false, false, true },
+    { "L", GPIO_BTN_L1, BTN_NUM_L1, false, false, true },
+    { "R", GPIO_BTN_R1, BTN_NUM_R1, false, false, true },
+    { "C-Up", GPIO_BTN_SQUARE, BTN_NUM_C, false, false, REPORT_C_UP_AS_BUTTON },
+    { "C-Down", GPIO_BTN_R2, BTN_NUM_Y, false, false, REPORT_C_DOWN_AS_BUTTON },
+    { "C-Left", GPIO_BTN_TRIANGLE, BTN_NUM_X, false, false, REPORT_C_LEFT_AS_BUTTON },  
+    { "C-Right", GPIO_BTN_SELECT, BTN_NUM_SELECT, false, false, REPORT_C_RIGHT_AS_BUTTON }
+};
+
 josticks_s josticks[NUM_OF_JOSTICKS] =
 {
-    { "Jostick L", ADC_STICK_LX, 0, 0, BLE_REVERSE_AXIS_LX, ADC_STICK_LY, 0, 0, BLE_REVERSE_AXIS_LY },
-    { "Jostick R", ADC_STICK_RX, 0, 0, BLE_REVERSE_AXIS_RX, ADC_STICK_RY, 0, 0, BLE_REVERSE_AXIS_RY }
+    { "Jostick L", ADC_STICK_LX, JOYSTICK_CEN, JOYSTICK_CEN, BLE_REVERSE_AXIS_LX, ADC_STICK_LY, JOYSTICK_CEN, JOYSTICK_CEN, BLE_REVERSE_AXIS_LY },
+    { "Jostick R", ADC_STICK_RX, JOYSTICK_CEN, JOYSTICK_CEN, BLE_REVERSE_AXIS_RX, ADC_STICK_RY, JOYSTICK_CEN, JOYSTICK_CEN, BLE_REVERSE_AXIS_RY }
 };
 
 dpad_s dpads[NUM_OF_DPADS * 4] =
@@ -55,8 +69,8 @@ dpad_s dpads[NUM_OF_DPADS * 4] =
 
 triggers_s triggers[NUM_OF_TRIGGERS] =
 {
-    { "Trigger L", ADC_TRIGGER_L, 0, 0, BTN_NUM_L2, REVERSE_TRIGGER_L },
-    { "Trigger R", ADC_TRIGGER_R, 0, 0, BTN_NUM_R2, REVERSE_TRIGGER_R }
+    { "Trigger L", ADC_TRIGGER_L, JOYSTICK_CEN, JOYSTICK_CEN, BTN_NUM_L2, REVERSE_TRIGGER_L },
+    { "Trigger R", ADC_TRIGGER_R, JOYSTICK_CEN, JOYSTICK_CEN, BTN_NUM_R2, REVERSE_TRIGGER_R }
 };
 
 void encoder_pot_x(void * pvParameters)
@@ -201,6 +215,48 @@ void button_task(void * pvParameters)
     }
 }
 
+void button_task64(void * pvParameters)
+{
+    const char* TAG = "button_task64";
+
+    while (true)
+    {
+        regread_button = REG_READ(GPIO_IN_REG) & PIN_BIT_MASK;
+
+        if (bleGamepad.isConnected())
+        {
+            for (int i = 0; i < NUM_PHYSICAL_BTNS_64; i++)
+            {
+                if (!buttons64[i].report_as_button)
+                    continue;
+
+                buttons64[i].current_state = read_button(regread_button, buttons64[i].gpio_num);
+
+                if (buttons64[i].current_state != buttons64[i].previous_state)
+                {
+                    if (buttons64[i].current_state)
+                    {
+                        ESP_LOGI(TAG, "Press Button: %s", buttons64[i].name);                        
+                        bleGamepad.press(buttons64[i].physical_button);
+                    }
+                    else
+                    {
+                        ESP_LOGI(TAG, "Release Button: %s", buttons64[i].name);
+                        bleGamepad.release(buttons64[i].physical_button);
+                    }
+                       
+                    bleGamepad.sendReport();
+                    buttons64[i].previous_state = buttons64[i].current_state;
+                }
+            }
+        }
+        
+        syncController(regread_button);
+
+        vTaskDelay(5);
+    }
+}
+
 void joystick_task(void * pvParameters)
 {
     const char* TAG = "joystick_task";
@@ -238,6 +294,67 @@ void joystick_task(void * pvParameters)
                     josticks[i].previous_state_axis_x = josticks[i].current_state_axis_x;
                     josticks[i].previous_state_axis_y = josticks[i].current_state_axis_y;
                 }
+            }
+        }
+
+        vTaskDelay(5);
+    }
+}
+
+void button_c_task64(void * pvParameters)
+{
+    const char* TAG = "button_c_task64";
+
+    int16_t current_axis_ry;
+    int16_t current_axis_rx;
+    int16_t previous_axis_ry;
+    int16_t previous_axis_rx;
+    uint32_t regread_button_c;
+
+    previous_axis_ry = JOYSTICK_CEN;
+    previous_axis_rx = JOYSTICK_CEN;
+
+    while(true)
+    {
+        if (bleGamepad.isConnected())
+        {
+            regread_button_c = REG_READ(GPIO_IN_REG) & PIN_BIT_MASK;
+            current_axis_ry = JOYSTICK_CEN;
+            current_axis_rx = JOYSTICK_CEN;
+
+            for (int i = 0; i < NUM_PHYSICAL_BTNS_64; i++)
+            {
+                if (buttons64[i].report_as_button)
+                    continue;
+
+                buttons64[i].current_state = read_button(regread_button_c, buttons64[i].gpio_num);
+
+                if (buttons64[i].current_state)
+                {
+                    if (strcmp(buttons64[i].name, "C-Up") == 0)
+                        current_axis_ry = JOYSTICK_MIN;
+            
+                    if (strcmp(buttons64[i].name, "C-Down") == 0)
+                        current_axis_ry = JOYSTICK_MAX;
+
+                    if (strcmp(buttons64[i].name, "C-Left") == 0)
+                        current_axis_rx = JOYSTICK_MIN;
+
+                    if (strcmp(buttons64[i].name, "C-Right") == 0)
+                        current_axis_rx = JOYSTICK_MAX;
+                }
+            }
+
+            if (current_axis_rx != previous_axis_rx || current_axis_ry != previous_axis_ry)
+            {
+                ESP_LOGI(TAG, "Jostick RX: %d ", current_axis_rx);
+                ESP_LOGI(TAG, "Jostick RY: %d ", current_axis_ry);
+
+                bleGamepad.setRightThumb(current_axis_rx, current_axis_ry);
+                bleGamepad.sendReport();
+
+                previous_axis_rx = current_axis_rx;
+                previous_axis_ry = current_axis_ry;
             }
         }
 
@@ -288,8 +405,8 @@ void blegamepad_init()
     bool include_jostick_right;
     bool include_triggers;
 
-    include_jostick_left = (PRIMARY_CONTROLLER == PRO || PRIMARY_CONTROLLER == N64);
-    include_jostick_right = PRIMARY_CONTROLLER == PRO;
+    include_jostick_left = true; //(PRIMARY_CONTROLLER == PRO || PRIMARY_CONTROLLER == N64);
+    include_jostick_right = true; //PRIMARY_CONTROLLER == PRO;
     include_triggers = false; //TRIGGER_TYPE == ANALOG;
 
     setup_gpios();
@@ -310,20 +427,22 @@ void blegamepad_init()
     bleGamepad.begin(&bleGamepadConfig);
 
     if (JOSTICK_TYPE == PRO_J)
-        //xTaskCreate(joystick_task, "joystick_task", 4096, NULL, 1, NULL);
+    {
         xTaskCreatePinnedToCore(joystick_task, "joystick_task", 4096, NULL, 1, NULL, 0);
+        xTaskCreatePinnedToCore(button_task, "button_task", 4096, NULL, 1, NULL, 0);
+    }
     else
     {
         gpio_install_isr_service(0);
-        ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_ENCODER_IX, encoder_pot_x, NULL));
-        ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_ENCODER_IY, encoder_pot_y, NULL));
+        gpio_isr_handler_add(GPIO_ENCODER_IX, encoder_pot_x, NULL);
+        gpio_isr_handler_add(GPIO_ENCODER_IY, encoder_pot_y, NULL);
 
-        //xTaskCreate(joystick_n64_task, "joystick_n64_task", 4096, NULL, 1, NULL);
         xTaskCreatePinnedToCore(joystick_n64_task, "joystick_n64_task", 4096, NULL, 1, NULL, 0);
+        xTaskCreatePinnedToCore(button_task64, "button_task64", 4096, NULL, 1, NULL, 0);
+
+        if (!REPORT_C_RIGHT_AS_BUTTON || !REPORT_C_LEFT_AS_BUTTON || !REPORT_C_UP_AS_BUTTON || !REPORT_C_DOWN_AS_BUTTON)
+            xTaskCreatePinnedToCore(button_c_task64, "button_c_task64", 4096, NULL, 1, NULL, 0);
     }
 
-    //xTaskCreate(dpad_task, "dpad_task", 4096, NULL, 1, NULL);
-    //xTaskCreate(button_task, "button_task", 4096, NULL, 1, NULL);
     xTaskCreatePinnedToCore(dpad_task, "dpad_task", 4096, NULL, 1, NULL, 0);
-    xTaskCreatePinnedToCore(button_task, "button_task", 4096, NULL, 1, NULL, 0);
 }
