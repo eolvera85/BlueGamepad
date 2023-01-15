@@ -39,7 +39,6 @@
 #endif
 
 #include "NimBLEUtils.h"
-#include "NimBLESecurity.h"
 #include "NimBLEAddress.h"
 
 #ifdef ESP_PLATFORM
@@ -63,7 +62,7 @@
 #define BLEAddress                      NimBLEAddress
 #define BLEUtils                        NimBLEUtils
 #define BLEClientCallbacks              NimBLEClientCallbacks
-#define BLEAdvertisedDeviceCallbacks    NimBLEAdvertisedDeviceCallbacks
+#define BLEAdvertisedDeviceCallbacks    NimBLEScanCallbacks
 #define BLEScanResults                  NimBLEScanResults
 #define BLEServer                       NimBLEServer
 #define BLEService                      NimBLEService
@@ -79,6 +78,7 @@
 #define BLEBeacon                       NimBLEBeacon
 #define BLEEddystoneTLM                 NimBLEEddystoneTLM
 #define BLEEddystoneURL                 NimBLEEddystoneURL
+#define BLEConnInfo                     NimBLEConnInfo
 
 #ifdef CONFIG_BT_NIMBLE_MAX_CONNECTIONS
 #define NIMBLE_MAX_CONNECTIONS          CONFIG_BT_NIMBLE_MAX_CONNECTIONS
@@ -97,6 +97,7 @@ class NimBLEDevice {
 public:
     static void             init(const std::string &deviceName);
     static void             deinit(bool clearAll = false);
+    static void             setDeviceName(const std::string &deviceName);
     static bool             getInitialized();
     static NimBLEAddress    getAddress();
     static std::string      toString();
@@ -134,7 +135,6 @@ public:
     static void             setSecurityRespKey(uint8_t init_key);
     static void             setSecurityPasskey(uint32_t pin);
     static uint32_t         getSecurityPasskey();
-    static void             setSecurityCallbacks(NimBLESecurityCallbacks* pCallbacks);
     static int              startSecurity(uint16_t conn_id);
     static int              setMTU(uint16_t mtu);
     static uint16_t         getMTU();
@@ -150,9 +150,10 @@ public:
                                                   int max_events = 0);
     static bool                  stopAdvertising(uint8_t inst_id);
     static bool                  stopAdvertising();
-#  else
+#  endif
+#  if !CONFIG_BT_NIMBLE_EXT_ADV || defined(_DOXYGEN_)
     static NimBLEAdvertising*    getAdvertising();
-    static bool                  startAdvertising();
+    static bool                  startAdvertising(uint32_t duration = 0);
     static bool                  stopAdvertising();
 #  endif
 #endif
@@ -222,7 +223,6 @@ private:
     static std::list <NimBLEClient*>  m_cList;
 #endif
     static std::list <NimBLEAddress>  m_ignoreList;
-    static NimBLESecurityCallbacks*   m_securityCallbacks;
     static uint32_t                   m_passkey;
     static ble_gap_event_listener     m_listener;
     static gap_event_handler          m_customGapHandler;

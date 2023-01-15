@@ -5,8 +5,7 @@
 #define POSSIBLEAXES 8
 #define POSSIBLESIMULATIONCONTROLS 5
 
-//#include <Arduino.h>
-#include <stdint.h> 
+#include "esp_system.h"
 
 #define CONTROLLER_TYPE_JOYSTICK 0x04
 #define CONTROLLER_TYPE_GAMEPAD 0x05

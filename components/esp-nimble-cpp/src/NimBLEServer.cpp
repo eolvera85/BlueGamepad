@@ -339,11 +339,11 @@ NimBLEConnInfo NimBLEServer::getPeerIDInfo(uint16_t id) {
  */
 /*STATIC*/
 int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
-    NimBLEServer* server = NimBLEDevice::getServer();
-    NIMBLE_LOGD(LOG_TAG, ">> handleGapEvent: %s",
-                         NimBLEUtils::gapEventToString(event->type));
+    NIMBLE_LOGD(LOG_TAG, ">> handleGapEvent: %s", NimBLEUtils::gapEventToString(event->type));
+
     int rc = 0;
-    struct ble_gap_conn_desc desc;
+    NimBLEConnInfo peerInfo;
+    NimBLEServer* pServer = NimBLEDevice::getServer();
 
     switch(event->type) {
 
@@ -356,15 +356,14 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
 #endif
             }
             else {
-                server->m_connectedPeersVec.push_back(event->connect.conn_handle);
+                pServer->m_connectedPeersVec.push_back(event->connect.conn_handle);
 
-                rc = ble_gap_conn_find(event->connect.conn_handle, &desc);
+                rc = ble_gap_conn_find(event->connect.conn_handle, &peerInfo.m_desc);
                 if (rc != 0) {
                     return 0;
                 }
 
-                server->m_pServerCallbacks->onConnect(server);
-                server->m_pServerCallbacks->onConnect(server, &desc);
+                pServer->m_pServerCallbacks->onConnect(pServer, peerInfo);
             }
 
             return 0;
@@ -386,21 +385,21 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
                     break;
             }
 
-            server->m_connectedPeersVec.erase(std::remove(server->m_connectedPeersVec.begin(),
-                                                          server->m_connectedPeersVec.end(),
+            pServer->m_connectedPeersVec.erase(std::remove(pServer->m_connectedPeersVec.begin(),
+                                                          pServer->m_connectedPeersVec.end(),
                                                           event->disconnect.conn.conn_handle),
-                                                          server->m_connectedPeersVec.end());
+                                                          pServer->m_connectedPeersVec.end());
 
-            if(server->m_svcChanged) {
-                server->resetGATT();
+            if(pServer->m_svcChanged) {
+                pServer->resetGATT();
             }
 
-            server->m_pServerCallbacks->onDisconnect(server);
-            server->m_pServerCallbacks->onDisconnect(server, &event->disconnect.conn);
+            NimBLEConnInfo peerInfo(event->disconnect.conn);
+            pServer->m_pServerCallbacks->onDisconnect(pServer, peerInfo, event->disconnect.reason);
 
 #if !CONFIG_BT_NIMBLE_EXT_ADV
-            if(server->m_advertiseOnDisconnect) {
-                server->startAdvertising();
+            if(pServer->m_advertiseOnDisconnect) {
+                pServer->startAdvertising();
             }
 #endif
             return 0;
@@ -411,18 +410,18 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
                                  event->subscribe.attr_handle,
                                  (event->subscribe.cur_notify ? "true":"false"));
 
-            for(auto &it : server->m_notifyChrVec) {
+            for(auto &it : pServer->m_notifyChrVec) {
                 if(it->getHandle() == event->subscribe.attr_handle) {
                     if((it->getProperties() & BLE_GATT_CHR_F_READ_AUTHEN) ||
                        (it->getProperties() & BLE_GATT_CHR_F_READ_AUTHOR) ||
                        (it->getProperties() & BLE_GATT_CHR_F_READ_ENC))
                     {
-                        rc = ble_gap_conn_find(event->subscribe.conn_handle, &desc);
+                        rc = ble_gap_conn_find(event->subscribe.conn_handle, &peerInfo.m_desc);
                         if (rc != 0) {
                             break;
                         }
 
-                        if(!desc.sec_state.encrypted) {
+                        if(!peerInfo.isEncrypted()) {
                             NimBLEDevice::startSecurity(event->subscribe.conn_handle);
                         }
                     }
@@ -439,19 +438,20 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
             NIMBLE_LOGI(LOG_TAG, "mtu update event; conn_handle=%d mtu=%d",
                         event->mtu.conn_handle,
                         event->mtu.value);
-            rc = ble_gap_conn_find(event->mtu.conn_handle, &desc);
+
+            rc = ble_gap_conn_find(event->mtu.conn_handle, &peerInfo.m_desc);
             if (rc != 0) {
                 return 0;
             }
 
-            server->m_pServerCallbacks->onMTUChange(event->mtu.value, &desc);
+            pServer->m_pServerCallbacks->onMTUChange(event->mtu.value, peerInfo);
             return 0;
         } // BLE_GAP_EVENT_MTU
 
         case BLE_GAP_EVENT_NOTIFY_TX: {
             NimBLECharacteristic *pChar = nullptr;
 
-            for(auto &it : server->m_notifyChrVec) {
+            for(auto &it : pServer->m_notifyChrVec) {
                 if(it->getHandle() == event->notify_tx.attr_handle) {
                     pChar = it;
                 }
@@ -461,31 +461,14 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
                 return 0;
             }
 
-            NimBLECharacteristicCallbacks::Status statusRC;
-
             if(event->notify_tx.indication) {
-                if(event->notify_tx.status != 0) {
-                    if(event->notify_tx.status == BLE_HS_EDONE) {
-                        statusRC = NimBLECharacteristicCallbacks::Status::SUCCESS_INDICATE;
-                    } else if(rc == BLE_HS_ETIMEOUT) {
-                        statusRC = NimBLECharacteristicCallbacks::Status::ERROR_INDICATE_TIMEOUT;
-                    } else {
-                        statusRC = NimBLECharacteristicCallbacks::Status::ERROR_INDICATE_FAILURE;
-                    }
-                } else {
-                    return 0;
-                }
-
-                server->clearIndicateWait(event->notify_tx.conn_handle);
-            } else {
                 if(event->notify_tx.status == 0) {
-                    statusRC = NimBLECharacteristicCallbacks::Status::SUCCESS_NOTIFY;
-                } else {
-                    statusRC = NimBLECharacteristicCallbacks::Status::ERROR_GATT;
+                    return 0; // Indication sent but not yet acknowledged.
                 }
+                pServer->clearIndicateWait(event->notify_tx.conn_handle);
             }
 
-            pChar->m_pCallbacks->onStatus(pChar, statusRC, event->notify_tx.status);
+            pChar->m_pCallbacks->onStatus(pChar, event->notify_tx.status);
 
             return 0;
         } // BLE_GAP_EVENT_NOTIFY_TX
@@ -512,12 +495,12 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
              */
 
             /* Delete the old bond. */
-            rc = ble_gap_conn_find(event->repeat_pairing.conn_handle, &desc);
+            rc = ble_gap_conn_find(event->repeat_pairing.conn_handle, &peerInfo.m_desc);
             if (rc != 0){
                 return BLE_GAP_REPEAT_PAIRING_IGNORE;
             }
 
-            ble_store_util_delete_peer(&desc.peer_id_addr);
+            ble_store_util_delete_peer(&peerInfo.m_desc.peer_id_addr);
 
             /* Return BLE_GAP_REPEAT_PAIRING_RETRY to indicate that the host should
              * continue with the pairing operation.
@@ -526,18 +509,12 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
         } // BLE_GAP_EVENT_REPEAT_PAIRING
 
         case BLE_GAP_EVENT_ENC_CHANGE: {
-            rc = ble_gap_conn_find(event->enc_change.conn_handle, &desc);
+            rc = ble_gap_conn_find(event->enc_change.conn_handle, &peerInfo.m_desc);
             if(rc != 0) {
                 return BLE_ATT_ERR_INVALID_HANDLE;
             }
-            // Compatibility only - Do not use, should be removed the in future
-            if(NimBLEDevice::m_securityCallbacks != nullptr) {
-                NimBLEDevice::m_securityCallbacks->onAuthenticationComplete(&desc);
-            /////////////////////////////////////////////
-            } else {
-                server->m_pServerCallbacks->onAuthenticationComplete(&desc);
-            }
 
+            pServer->m_pServerCallbacks->onAuthenticationComplete(peerInfo);
             return 0;
         } // BLE_GAP_EVENT_ENC_CHANGE
 
@@ -551,7 +528,7 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
                 // if the (static)passkey is the default, check the callback for custom value
                 // both values default to the same.
                 if(pkey.passkey == 123456) {
-                    pkey.passkey = server->m_pServerCallbacks->onPassKeyRequest();
+                    pkey.passkey = pServer->m_pServerCallbacks->onPassKeyRequest();
                 }
                 rc = ble_sm_inject_io(event->passkey.conn_handle, &pkey);
                 NIMBLE_LOGD(LOG_TAG, "BLE_SM_IOACT_DISP; ble_sm_inject_io result: %d", rc);
@@ -559,13 +536,7 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
             } else if (event->passkey.params.action == BLE_SM_IOACT_NUMCMP) {
                 NIMBLE_LOGD(LOG_TAG, "Passkey on device's display: %" PRIu32, event->passkey.params.numcmp);
                 pkey.action = event->passkey.params.action;
-                // Compatibility only - Do not use, should be removed the in future
-                if(NimBLEDevice::m_securityCallbacks != nullptr) {
-                    pkey.numcmp_accept = NimBLEDevice::m_securityCallbacks->onConfirmPIN(event->passkey.params.numcmp);
-                /////////////////////////////////////////////
-                } else {
-                    pkey.numcmp_accept = server->m_pServerCallbacks->onConfirmPIN(event->passkey.params.numcmp);
-                }
+                pkey.numcmp_accept = pServer->m_pServerCallbacks->onConfirmPIN(event->passkey.params.numcmp);
 
                 rc = ble_sm_inject_io(event->passkey.conn_handle, &pkey);
                 NIMBLE_LOGD(LOG_TAG, "BLE_SM_IOACT_NUMCMP; ble_sm_inject_io result: %d", rc);
@@ -583,14 +554,7 @@ int NimBLEServer::handleGapEvent(struct ble_gap_event *event, void *arg) {
             } else if (event->passkey.params.action == BLE_SM_IOACT_INPUT) {
                 NIMBLE_LOGD(LOG_TAG, "Enter the passkey");
                 pkey.action = event->passkey.params.action;
-
-                // Compatibility only - Do not use, should be removed the in future
-                if(NimBLEDevice::m_securityCallbacks != nullptr) {
-                    pkey.passkey = NimBLEDevice::m_securityCallbacks->onPassKeyRequest();
-                /////////////////////////////////////////////
-                } else {
-                    pkey.passkey = server->m_pServerCallbacks->onPassKeyRequest();
-                }
+                pkey.passkey = pServer->m_pServerCallbacks->onPassKeyRequest();
 
                 rc = ble_sm_inject_io(event->passkey.conn_handle, &pkey);
                 NIMBLE_LOGD(LOG_TAG, "BLE_SM_IOACT_INPUT; ble_sm_inject_io result: %d", rc);
@@ -767,15 +731,16 @@ bool NimBLEServer::stopAdvertising(uint8_t inst_id) {
 } // stopAdvertising
 #endif
 
-#if !CONFIG_BT_NIMBLE_EXT_ADV|| defined(_DOXYGEN_)
+#if !CONFIG_BT_NIMBLE_EXT_ADV || defined(_DOXYGEN_)
 /**
  * @brief Start advertising.
+ * @param [in] duration The duration in milliseconds to advertise for, default = forever.
  * @return True if advertising started successfully.
- * @details Start the server advertising its existence.  This is a convenience function and is equivalent to
+ * @details Start the server advertising its existence. This is a convenience function and is equivalent to
  * retrieving the advertising object and invoking start upon it.
  */
-bool NimBLEServer::startAdvertising() {
-    return getAdvertising()->start();
+bool NimBLEServer::startAdvertising(uint32_t duration) {
+    return getAdvertising()->start(duration);
 } // startAdvertising
 #endif
 
@@ -873,49 +838,31 @@ void NimBLEServer::clearIndicateWait(uint16_t conn_handle) {
 
 
 /** Default callback handlers */
-
-void NimBLEServerCallbacks::onConnect(NimBLEServer* pServer) {
+void NimBLEServerCallbacks::onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) {
     NIMBLE_LOGD("NimBLEServerCallbacks", "onConnect(): Default");
 } // onConnect
 
-
-void NimBLEServerCallbacks::onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
-    NIMBLE_LOGD("NimBLEServerCallbacks", "onConnect(): Default");
-} // onConnect
-
-
-void NimBLEServerCallbacks::onDisconnect(NimBLEServer* pServer) {
+void NimBLEServerCallbacks::onDisconnect(NimBLEServer* pServer,
+                                         NimBLEConnInfo& connInfo, int reason) {
     NIMBLE_LOGD("NimBLEServerCallbacks", "onDisconnect(): Default");
 } // onDisconnect
 
-void NimBLEServerCallbacks::onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
-    NIMBLE_LOGD("NimBLEServerCallbacks", "onDisconnect(): Default");
-} // onDisconnect
-
-void NimBLEServerCallbacks::onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc) {
+void NimBLEServerCallbacks::onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) {
     NIMBLE_LOGD("NimBLEServerCallbacks", "onMTUChange(): Default");
 } // onMTUChange
 
 uint32_t NimBLEServerCallbacks::onPassKeyRequest(){
     NIMBLE_LOGD("NimBLEServerCallbacks", "onPassKeyRequest: default: 123456");
     return 123456;
-}
-/*
-void NimBLEServerCallbacks::onPassKeyNotify(uint32_t pass_key){
-    NIMBLE_LOGD("NimBLEServerCallbacks", "onPassKeyNotify: default: %d", pass_key);
-}
+} //onPassKeyRequest
 
-bool NimBLEServerCallbacks::onSecurityRequest(){
-    NIMBLE_LOGD("NimBLEServerCallbacks", "onSecurityRequest: default: true");
-    return true;
-}
-*/
-void NimBLEServerCallbacks::onAuthenticationComplete(ble_gap_conn_desc*){
+void NimBLEServerCallbacks::onAuthenticationComplete(NimBLEConnInfo& connInfo){
     NIMBLE_LOGD("NimBLEServerCallbacks", "onAuthenticationComplete: default");
-}
+} // onAuthenticationComplete
+
 bool NimBLEServerCallbacks::onConfirmPIN(uint32_t pin){
     NIMBLE_LOGD("NimBLEServerCallbacks", "onConfirmPIN: default: true");
     return true;
-}
+} // onConfirmPIN
 
 #endif /* CONFIG_BT_ENABLED && CONFIG_BT_NIMBLE_ROLE_PERIPHERAL */

@@ -63,7 +63,7 @@ public:
     uint16_t                                    getConnId();
     uint16_t                                    getMTU();
     bool                                        secureConnection();
-    void                                        setConnectTimeout(uint8_t timeout);
+    void                                        setConnectTimeout(uint32_t timeout);
     void                                        setConnectionParams(uint16_t minInterval, uint16_t maxInterval,
                                                                     uint16_t latency, uint16_t timeout,
                                                                     uint16_t scanInterval=16, uint16_t scanWindow=16);
@@ -130,8 +130,9 @@ public:
     /**
      * @brief Called when disconnected from the server.
      * @param [in] pClient A pointer to the calling client object.
+     * @param [in] reason Contains the reason code for the disconnection.
      */
-    virtual void onDisconnect(NimBLEClient* pClient);
+    virtual void onDisconnect(NimBLEClient* pClient, int reason);
 
     /**
      * @brief Called when server requests to update the connection parameters.
@@ -147,15 +148,12 @@ public:
      */
     virtual uint32_t onPassKeyRequest();
 
-    /*virtual void onPassKeyNotify(uint32_t pass_key);
-    virtual bool onSecurityRequest();*/
-
     /**
      * @brief Called when the pairing procedure is complete.
-     * @param [in] desc A pointer to the struct containing the connection information.\n
+     * @param [in] connInfo A reference to a NimBLEConnInfo instance containing the peer info.\n
      * This can be used to check the status of the connection encryption/pairing.
      */
-    virtual void onAuthenticationComplete(ble_gap_conn_desc* desc);
+    virtual void onAuthenticationComplete(NimBLEConnInfo& connInfo);
 
     /**
      * @brief Called when using numeric comparision for pairing.

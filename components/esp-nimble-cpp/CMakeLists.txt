@@ -45,7 +45,6 @@ idf_component_register(
     "src/NimBLERemoteDescriptor.cpp"
     "src/NimBLERemoteService.cpp"
     "src/NimBLEScan.cpp"
-    "src/NimBLESecurity.cpp"
     "src/NimBLEServer.cpp"
     "src/NimBLEService.cpp"
     "src/NimBLEUtils.cpp"
@@ -57,3 +56,4 @@ idf_component_register(
   PRIV_REQUIRES
     ${ESP_NIMBLE_PRIV_REQUIRES}
 )
+

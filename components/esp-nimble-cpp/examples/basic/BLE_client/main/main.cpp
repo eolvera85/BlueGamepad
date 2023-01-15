@@ -5,7 +5,7 @@
  * updated by chegewara
  * updated for NimBLE by H2zero
  */
- 
+
 /** NimBLE differences highlighted in comment blocks **/
 
 /*******original********
@@ -38,12 +38,14 @@ static void notifyCallback(
 }
 
 /**  None of these are required as they will be handled by the library with defaults. **
- **                       Remove as you see fit for your needs                        */  
+ **                       Remove as you see fit for your needs                        */
 class MyClientCallback : public BLEClientCallbacks {
   void onConnect(BLEClient* pclient) {
   }
 
-  void onDisconnect(BLEClient* pclient) {
+  /** onDisconnect now takes a reason parameter to indicate the reason for disconnection
+  void onDisconnect(BLEClient* pclient) { */
+  void onDisconnect(BLEClient* pclient, int reason) {
     connected = false;
     printf("onDisconnect");
   }
@@ -58,7 +60,7 @@ class MyClientCallback : public BLEClientCallbacks {
     return true; 
   }
 
-  void onAuthenticationComplete(ble_gap_conn_desc desc){
+  void onAuthenticationComplete(BLEConnInfo& connInfo){
     printf("Starting BLE work!\n");
   }
 /*******************************************************************/
@@ -120,9 +122,9 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
  /**
    * Called for each advertising BLE server.
    */
-   
+
 /*** Only a reference to the advertised device is passed now
-  void onResult(BLEAdvertisedDevice advertisedDevice) { **/     
+  void onResult(BLEAdvertisedDevice advertisedDevice) { **/
   void onResult(BLEAdvertisedDevice* advertisedDevice) {
     printf("BLE Advertised Device found: %s\n", advertisedDevice->toString().c_str());
 
@@ -171,7 +173,7 @@ void connectTask (void * parameter){
         /*** Note: write value now returns true if successful, false otherwise - try again or disconnect ***/
         pRemoteCharacteristic->writeValue((uint8_t*)buf, strlen(buf), false);
       }else if(doScan){
-        BLEDevice::getScan()->start(0);  // this is just eample to start scan after disconnect, most likely there is better way to do it in arduino
+        BLEDevice::getScan()->start(0);  // this is just eample to start scan after disconnect, most likely there is better way to do it
       }
       
       vTaskDelay(1000/portTICK_PERIOD_MS); // Delay a second between loops.
@@ -189,12 +191,12 @@ void app_main(void) {
   // have detected a new device.  Specify that we want active scanning and start the
   // scan to run for 5 seconds.
   BLEScan* pBLEScan = BLEDevice::getScan();
-  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setScanCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setInterval(1349);
   pBLEScan->setWindow(449);
   pBLEScan->setActiveScan(true);
   
   xTaskCreate(connectTask, "connectTask", 5000, NULL, 1, NULL);
-  pBLEScan->start(5, false);
+  pBLEScan->start(5 * 1000, false);
 } // End of setup.
 
