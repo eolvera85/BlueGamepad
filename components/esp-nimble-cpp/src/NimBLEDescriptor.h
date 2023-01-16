@@ -21,7 +21,6 @@
 #include "NimBLECharacteristic.h"
 #include "NimBLEUUID.h"
 #include "NimBLEAttValue.h"
-#include "NimBLEConnInfo.h"
 
 #include <string>
 
@@ -109,9 +108,9 @@ private:
  */
 class NimBLEDescriptorCallbacks {
 public:
-    virtual ~NimBLEDescriptorCallbacks(){}
-    virtual void onRead(NimBLEDescriptor* pDescriptor, NimBLEConnInfo& connInfo);
-    virtual void onWrite(NimBLEDescriptor* pDescriptor, NimBLEConnInfo& connInfo);
+    virtual ~NimBLEDescriptorCallbacks();
+    virtual void onRead(NimBLEDescriptor* pDescriptor);
+    virtual void onWrite(NimBLEDescriptor* pDescriptor);
 };
 
 #include "NimBLE2904.h"

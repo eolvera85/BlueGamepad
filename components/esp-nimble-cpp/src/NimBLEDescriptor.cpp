@@ -155,7 +155,7 @@ int NimBLEDescriptor::handleGapEvent(uint16_t conn_handle, uint16_t attr_handle,
 
     const ble_uuid_t *uuid;
     int rc;
-    NimBLEConnInfo peerInfo;
+    struct ble_gap_conn_desc desc;
     NimBLEDescriptor* pDescriptor = (NimBLEDescriptor*)arg;
 
     NIMBLE_LOGD(LOG_TAG, "Descriptor %s %s event", pDescriptor->getUUID().toString().c_str(),
@@ -165,14 +165,14 @@ int NimBLEDescriptor::handleGapEvent(uint16_t conn_handle, uint16_t attr_handle,
     if(ble_uuid_cmp(uuid, &pDescriptor->getUUID().getNative()->u) == 0){
         switch(ctxt->op) {
             case BLE_GATT_ACCESS_OP_READ_DSC: {
-                rc = ble_gap_conn_find(conn_handle, &peerInfo.m_desc);
+                rc = ble_gap_conn_find(conn_handle, &desc);
                 assert(rc == 0);
 
                  // If the packet header is only 8 bytes this is a follow up of a long read
                  // so we don't want to call the onRead() callback again.
                 if(ctxt->om->om_pkthdr_len > 8 ||
-                   pDescriptor->m_value.size() <= (ble_att_mtu(peerInfo.getConnHandle()) - 3)) {
-                    pDescriptor->m_pCallbacks->onRead(pDescriptor, peerInfo);
+                   pDescriptor->m_value.size() <= (ble_att_mtu(desc.conn_handle) - 3)) {
+                    pDescriptor->m_pCallbacks->onRead(pDescriptor);
                 }
 
                 ble_npl_hw_enter_critical();
@@ -182,9 +182,6 @@ int NimBLEDescriptor::handleGapEvent(uint16_t conn_handle, uint16_t attr_handle,
             }
 
             case BLE_GATT_ACCESS_OP_WRITE_DSC: {
-                rc = ble_gap_conn_find(conn_handle, &peerInfo.m_desc);
-                assert(rc == 0);
-
                 uint16_t att_max_len = pDescriptor->m_value.max_size();
 
                 if (ctxt->om->om_len > att_max_len) {
@@ -206,7 +203,7 @@ int NimBLEDescriptor::handleGapEvent(uint16_t conn_handle, uint16_t attr_handle,
                 }
 
                 pDescriptor->setValue(buf, len);
-                pDescriptor->m_pCallbacks->onWrite(pDescriptor, peerInfo);
+                pDescriptor->m_pCallbacks->onWrite(pDescriptor);
                 return 0;
             }
             default:
@@ -283,12 +280,13 @@ std::string NimBLEDescriptor::toString() {
 } // toString
 
 
+NimBLEDescriptorCallbacks::~NimBLEDescriptorCallbacks() {}
+
 /**
  * @brief Callback function to support a read request.
  * @param [in] pDescriptor The descriptor that is the source of the event.
- * @param [in] connInfo A reference to a NimBLEConnInfo instance containing the peer info.
  */
-void NimBLEDescriptorCallbacks::onRead(NimBLEDescriptor* pDescriptor, NimBLEConnInfo& connInfo) {
+void NimBLEDescriptorCallbacks::onRead(NimBLEDescriptor* pDescriptor) {
     (void)pDescriptor;
     NIMBLE_LOGD("NimBLEDescriptorCallbacks", "onRead: default");
 } // onRead
@@ -297,9 +295,8 @@ void NimBLEDescriptorCallbacks::onRead(NimBLEDescriptor* pDescriptor, NimBLEConn
 /**
  * @brief Callback function to support a write request.
  * @param [in] pDescriptor The descriptor that is the source of the event.
- * @param [in] connInfo A reference to a NimBLEConnInfo instance containing the peer info.
  */
-void NimBLEDescriptorCallbacks::onWrite(NimBLEDescriptor* pDescriptor, NimBLEConnInfo& connInfo) {
+void NimBLEDescriptorCallbacks::onWrite(NimBLEDescriptor* pDescriptor) {
     (void)pDescriptor;
     NIMBLE_LOGD("NimBLEDescriptorCallbacks", "onWrite: default");
 } // onWrite

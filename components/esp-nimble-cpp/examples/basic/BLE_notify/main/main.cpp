@@ -48,11 +48,11 @@ uint32_t value = 0;
 /**  None of these are required as they will be handled by the library with defaults. **
  **                       Remove as you see fit for your needs                        */  
 class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer, BLEConnInfo& connInfo) {
+    void onConnect(BLEServer* pServer) {
       deviceConnected = true;
     };
 
-    void onDisconnect(BLEServer* pServer, BLEConnInfo& connInfo, int reason) {
+    void onDisconnect(BLEServer* pServer) {
       deviceConnected = false;
     }
 /***************** New - Security handled here ********************
@@ -67,7 +67,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
     return true; 
   }
 
-  void onAuthenticationComplete(BLEConnInfo& connInfo){
+  void onAuthenticationComplete(ble_gap_conn_desc desc){
     printf("Starting BLE work!\n");
   }
 /*******************************************************************/

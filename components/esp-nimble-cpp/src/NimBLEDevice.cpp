@@ -83,10 +83,11 @@ std::list <NimBLEClient*>   NimBLEDevice::m_cList;
 #endif
 std::list <NimBLEAddress>   NimBLEDevice::m_ignoreList;
 std::vector<NimBLEAddress>  NimBLEDevice::m_whiteList;
+NimBLESecurityCallbacks*    NimBLEDevice::m_securityCallbacks = nullptr;
 uint8_t                     NimBLEDevice::m_own_addr_type = BLE_OWN_ADDR_PUBLIC;
 #ifdef ESP_PLATFORM
-uint16_t                    NimBLEDevice::m_scanDuplicateSize = 200; //CONFIG_BTDM_SCAN_DUPL_CACHE_SIZE;
-uint8_t                     NimBLEDevice::m_scanFilterMode = 0; //CONFIG_BTDM_SCAN_DUPL_TYPE;
+uint16_t                    NimBLEDevice::m_scanDuplicateSize = 200; //CONFIG_BTDM_SCAN_DUPL_CACHE_SIZE; //200
+uint8_t                     NimBLEDevice::m_scanFilterMode = 0; //CONFIG_BTDM_SCAN_DUPL_TYPE; //0
 #endif
 
 /**
@@ -170,11 +171,10 @@ NimBLEAdvertising* NimBLEDevice::getAdvertising() {
 
 /**
  * @brief Convenience function to begin advertising.
- * @param [in] duration The duration in milliseconds to advertise for, default = forever.
  * @return True if advertising started successfully.
  */
-bool NimBLEDevice::startAdvertising(uint32_t duration) {
-    return getAdvertising()->start(duration);
+bool NimBLEDevice::startAdvertising() {
+    return getAdvertising()->start();
 } // startAdvertising
 #  endif
 
@@ -253,7 +253,7 @@ bool NimBLEDevice::deleteClient(NimBLEClient* pClient) {
         }
         // Since we set the flag to false the app will not get a callback
         // in the disconnect event so we call it here for good measure.
-        pClient->m_pClientCallbacks->onDisconnect(pClient, BLE_ERR_CONN_TERM_LOCAL);
+        pClient->m_pClientCallbacks->onDisconnect(pClient);
 
     } else if(pClient->m_pTaskData != nullptr) {
         rc = ble_gap_conn_cancel();
@@ -407,7 +407,7 @@ int NimBLEDevice::getPower(esp_ble_power_type_t powerType) {
         case ESP_PWR_LVL_N6:
             return -6;
         case ESP_PWR_LVL_N3:
-            return -3;
+            return -6;
         case ESP_PWR_LVL_N0:
             return 0;
         case ESP_PWR_LVL_P3:
@@ -866,7 +866,6 @@ void NimBLEDevice::init(const std::string &deviceName) {
 
         esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 #if  defined (CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
         bt_cfg.bluetooth_mode = ESP_BT_MODE_BLE;
@@ -880,7 +879,6 @@ void NimBLEDevice::init(const std::string &deviceName) {
         ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
         ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_BLE));
         ESP_ERROR_CHECK(esp_nimble_hci_init());
-#endif
 #endif
         nimble_port_init();
 
@@ -927,12 +925,10 @@ void NimBLEDevice::deinit(bool clearAll) {
     if (ret == 0) {
         nimble_port_deinit();
 #ifdef ESP_PLATFORM
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         ret = esp_nimble_hci_and_controller_deinit();
         if (ret != ESP_OK) {
             NIMBLE_LOGE(LOG_TAG, "esp_nimble_hci_and_controller_deinit() failed with error: %d", ret);
         }
-#endif
 #endif
         initialized = false;
         m_synced = false;
@@ -967,18 +963,13 @@ void NimBLEDevice::deinit(bool clearAll) {
 #endif
 
             m_ignoreList.clear();
+
+            if(m_securityCallbacks != nullptr) {
+                delete m_securityCallbacks;
+            }
         }
     }
 } // deinit
-
-/**
- * @brief Set the BLEDevice's name
- * @param [in] deviceName The device name of the device.
- */
-/* STATIC */
-void NimBLEDevice::setDeviceName(const std::string &deviceName) {
-    ble_svc_gap_device_name_set(deviceName.c_str());
-} // setDeviceName
 
 
 /**
@@ -1086,6 +1077,17 @@ void NimBLEDevice::setSecurityPasskey(uint32_t pin) {
 uint32_t NimBLEDevice::getSecurityPasskey() {
     return m_passkey;
 } // getSecurityPasskey
+
+
+/**
+ * @brief Set callbacks that will be used to handle encryption negotiation events and authentication events
+ * @param [in] callbacks Pointer to NimBLESecurityCallbacks class
+ * @deprecated For backward compatibility, New code should use client/server callback methods.
+ */
+/*STATIC*/
+void NimBLEDevice::setSecurityCallbacks(NimBLESecurityCallbacks* callbacks) {
+    NimBLEDevice::m_securityCallbacks = callbacks;
+} // setSecurityCallbacks
 
 
 #ifdef ESP_PLATFORM

@@ -31,6 +31,7 @@
 #include "NimBLEAdvertising.h"
 #endif
 #include "NimBLEService.h"
+#include "NimBLESecurity.h"
 #include "NimBLEConnInfo.h"
 
 
@@ -57,10 +58,9 @@ public:
                                             int duration = 0,
                                             int max_events = 0);
     bool                   stopAdvertising(uint8_t inst_id);
-#endif
-#  if !CONFIG_BT_NIMBLE_EXT_ADV || defined(_DOXYGEN_)
+#else
     NimBLEAdvertising*     getAdvertising();
-    bool                   startAdvertising(uint32_t duration = 0);
+    bool                   startAdvertising();
 #endif
     bool                   stopAdvertising();
     void                   start();
@@ -128,28 +128,41 @@ public:
      * @brief Handle a client connection.
      * This is called when a client connects.
      * @param [in] pServer A pointer to the %BLE server that received the client connection.
-     * @param [in] connInfo A reference to a NimBLEConnInfo instance with information
-     * about the peer connection parameters.
      */
-    virtual void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo);
+    virtual void onConnect(NimBLEServer* pServer);
+
+    /**
+     * @brief Handle a client connection.
+     * This is called when a client connects.
+     * @param [in] pServer A pointer to the %BLE server that received the client connection.
+     * @param [in] desc A pointer to the connection description structure containig information
+     * about the connection parameters.
+     */
+    virtual void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc);
 
     /**
      * @brief Handle a client disconnection.
+     * This is called when a client disconnects.
+     * @param [in] pServer A reference to the %BLE server that received the existing client disconnection.
+     */
+    virtual void onDisconnect(NimBLEServer* pServer);
+
+     /**
+     * @brief Handle a client disconnection.
      * This is called when a client discconnects.
      * @param [in] pServer A pointer to the %BLE server that received the client disconnection.
-     * @param [in] connInfo A reference to a NimBLEConnInfo instance with information
-     * about the peer connection parameters.
-     * @param [in] reason The reason code for the disconnection.
+     * @param [in] desc A pointer to the connection description structure containing information
+     * about the connection.
      */
-    virtual void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason);
+    virtual void onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc);
 
-    /**
+     /**
      * @brief Called when the connection MTU changes.
      * @param [in] MTU The new MTU value.
-     * @param [in] connInfo A reference to a NimBLEConnInfo instance with information
-     * about the peer connection parameters.
+     * @param [in] desc A pointer to the connection description structure containing information
+     * about the connection.
      */
-    virtual void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo);
+    virtual void onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc);
 
     /**
      * @brief Called when a client requests a passkey for pairing.
@@ -157,12 +170,15 @@ public:
      */
     virtual uint32_t onPassKeyRequest();
 
+    //virtual void onPassKeyNotify(uint32_t pass_key);
+    //virtual bool onSecurityRequest();
+
     /**
      * @brief Called when the pairing procedure is complete.
-     * @param [in] connInfo A reference to a NimBLEConnInfo instance with information
-     * about the peer connection parameters.
+     * @param [in] desc A pointer to the struct containing the connection information.\n
+     * This can be used to check the status of the connection encryption/pairing.
      */
-    virtual void onAuthenticationComplete(NimBLEConnInfo& connInfo);
+    virtual void onAuthenticationComplete(ble_gap_conn_desc* desc);
 
     /**
      * @brief Called when using numeric comparision for pairing.
