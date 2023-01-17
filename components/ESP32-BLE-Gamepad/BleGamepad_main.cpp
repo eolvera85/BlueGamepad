@@ -4,8 +4,8 @@ BleGamepad bleGamepad("BlueGamepad", "EOLVERA85", 100);
 
 uint32_t regread_button = 0;
 uint32_t regread_dpad = 0;
-volatile int count_x = 0;
-volatile int count_y = 0;
+int count_x = 0;
+int count_y = 0;
 
 signed char current_dpad = DPAD_CENTERED;
 signed char previous_dpad = DPAD_CENTERED;
@@ -13,7 +13,7 @@ signed char previous_dpad = DPAD_CENTERED;
 
 jostick_64_s jostick64 = 
 {
-    "Jostick L", JOYSTICK_CEN, JOYSTICK_CEN, BLE_N64_REVERSE_AXIS_LX, 0, 0, BLE_REVERSE_AXIS_LY
+    "Jostick L", JOYSTICK_CEN, JOYSTICK_CEN, JOYSTICK_CEN, JOYSTICK_CEN
 };
 
 buttons_s buttons[NUM_PHYSICAL_BTNS] = 
@@ -42,15 +42,15 @@ buttons_s buttons[NUM_PHYSICAL_BTNS] =
 buttons64_s buttons64[NUM_PHYSICAL_BTNS_64] = 
 {
     { "A", GPIO_BTN_CIRCLE, BTN_NUM_A, false, false, true },
-    { "B", GPIO_BTN_CROSS, BTN_NUM_B, false, false, true },
-    { "Start", GPIO_BTN_START, BTN_NUM_Z, false, false, true },    
+    { "B", GPIO_BTN_CROSS, BTN_NUM_X, false, false, true },
+    { "Start", GPIO_BTN_START, BTN_NUM_START, false, false, true },    
     { "Z", GPIO_BTN_L2, BTN_NUM_L2, false, false, true },
     { "L", GPIO_BTN_L1, BTN_NUM_L1, false, false, true },
     { "R", GPIO_BTN_R1, BTN_NUM_R1, false, false, true },
     { "C-Up", GPIO_BTN_SQUARE, BTN_NUM_C, false, false, REPORT_C_UP_AS_BUTTON },
-    { "C-Down", GPIO_BTN_R2, BTN_NUM_Y, false, false, REPORT_C_DOWN_AS_BUTTON },
-    { "C-Left", GPIO_BTN_TRIANGLE, BTN_NUM_X, false, false, REPORT_C_LEFT_AS_BUTTON },  
-    { "C-Right", GPIO_BTN_SELECT, BTN_NUM_SELECT, false, false, REPORT_C_RIGHT_AS_BUTTON }
+    { "C-Down", GPIO_BTN_R2, BTN_NUM_B, false, false, REPORT_C_DOWN_AS_BUTTON },
+    { "C-Left", GPIO_BTN_TRIANGLE, BTN_NUM_Y, false, false, REPORT_C_LEFT_AS_BUTTON },  
+    { "C-Right", GPIO_BTN_SELECT, BTN_NUM_R2, false, false, REPORT_C_RIGHT_AS_BUTTON }
 };
 
 josticks_s josticks[NUM_OF_JOSTICKS] =
@@ -80,11 +80,11 @@ void encoder_pot_x(void * pvParameters)
     else
         count_x--;
     
-    if (count_x > N64_JOSTICK_MAX)
-        count_x = N64_JOSTICK_MAX;
+    if (count_x > N64_JOYSTICK_MAX)
+        count_x = N64_JOYSTICK_MAX;
 
-    if (count_x < N64_JOSTICK_MIN)
-        count_x = N64_JOSTICK_MIN;        
+    if (count_x < N64_JOYSTICK_MIN)
+        count_x = N64_JOYSTICK_MIN;        
 
     //vTaskDelay(5);
 }
@@ -96,11 +96,11 @@ void encoder_pot_y(void * pvParameters)
     else
         count_y--;
 
-    if (count_y > N64_JOSTICK_MAX)
-        count_y = N64_JOSTICK_MAX;
+    if (count_y > N64_JOYSTICK_MAX)
+        count_y = N64_JOYSTICK_MAX;
 
-    if (count_y < N64_JOSTICK_MIN)
-        count_y = N64_JOSTICK_MIN;        
+    if (count_y < N64_JOYSTICK_MIN)
+        count_y = N64_JOYSTICK_MIN;        
 
     //vTaskDelay(5);
 }
@@ -378,20 +378,20 @@ void joystick_n64_task(void * pvParameters)
             pot_x = count_x;
             pot_y = count_y;
 
-            jostick64.current_state_axis_x = read_joystick_n64(pot_x, BLE_N64_REVERSE_AXIS_LX);
-            jostick64.current_state_axis_y = read_joystick_n64(pot_y, BLE_N64_REVERSE_AXIS_LY);
+            jostick64.current_state_pot_x = read_joystick_n64(pot_x, BLE_N64_REVERSE_AXIS_LX);
+            jostick64.current_state_pot_y = read_joystick_n64(pot_y, BLE_N64_REVERSE_AXIS_LY);
 
-            if(jostick64.current_state_axis_x != jostick64.previous_state_axis_x || 
-                jostick64.current_state_axis_y != jostick64.previous_state_axis_y)
+            if(jostick64.current_state_pot_x != jostick64.previous_state_pot_x || 
+                jostick64.current_state_pot_y != jostick64.previous_state_pot_y)
             {
-                ESP_LOGI(TAG, "%sX: %d / N64:%d", jostick64.name, jostick64.current_state_axis_x, pot_x);
-                ESP_LOGI(TAG, "%sY: %d / N64:%d", jostick64.name, jostick64.current_state_axis_y, pot_y);
+                ESP_LOGI(TAG, "%sX: %d / N64:%d", jostick64.name, jostick64.current_state_pot_x, pot_x);
+                ESP_LOGI(TAG, "%sY: %d / N64:%d", jostick64.name, jostick64.current_state_pot_y, pot_y);
 
-                bleGamepad.setLeftThumb(jostick64.current_state_axis_x, jostick64.current_state_axis_y);
+                bleGamepad.setLeftThumb(jostick64.current_state_pot_x, jostick64.current_state_pot_y);
                 bleGamepad.sendReport();
 
-                jostick64.previous_state_axis_x = jostick64.current_state_axis_x;
-                jostick64.previous_state_axis_y = jostick64.current_state_axis_y;
+                jostick64.previous_state_pot_x = jostick64.current_state_pot_x;
+                jostick64.previous_state_pot_y = jostick64.current_state_pot_y;
             }
         }
 
@@ -405,8 +405,8 @@ void blegamepad_init()
     bool include_jostick_right;
     bool include_triggers;
 
-    include_jostick_left = true; //(PRIMARY_CONTROLLER == PRO || PRIMARY_CONTROLLER == N64);
-    include_jostick_right = true; //PRIMARY_CONTROLLER == PRO;
+    include_jostick_left = (PRIMARY_CONTROLLER == PRO || PRIMARY_CONTROLLER == N64);
+    include_jostick_right = (PRIMARY_CONTROLLER == PRO || PRIMARY_CONTROLLER == N64);
     include_triggers = false; //TRIGGER_TYPE == ANALOG;
 
     setup_gpios();
@@ -426,7 +426,7 @@ void blegamepad_init()
     
     bleGamepad.begin(&bleGamepadConfig);
 
-    if (JOSTICK_TYPE == PRO_J)
+    if (JOYSTICK_TYPE == PRO_J)
     {
         xTaskCreatePinnedToCore(joystick_task, "joystick_task", 4096, NULL, 1, NULL, 0);
         xTaskCreatePinnedToCore(button_task, "button_task", 4096, NULL, 1, NULL, 0);

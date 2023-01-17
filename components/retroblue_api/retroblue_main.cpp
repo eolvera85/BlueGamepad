@@ -17,11 +17,11 @@ void handleEncoderX(void * pvParameters)
     else
         countx--;
     
-    if (countx > N64_JOSTICK_MAX)
-        countx = N64_JOSTICK_MAX;
+    if (countx > N64_JOYSTICK_MAX)
+        countx = N64_JOYSTICK_MAX;
 
-    if (countx < N64_JOSTICK_MIN)
-        countx = N64_JOSTICK_MIN;
+    if (countx < N64_JOYSTICK_MIN)
+        countx = N64_JOYSTICK_MIN;
 }
 
 void handleEncoderY(void * pvParameters)
@@ -31,11 +31,11 @@ void handleEncoderY(void * pvParameters)
     else
         county--;
 
-    if (county > N64_JOSTICK_MAX)
-        county = N64_JOSTICK_MAX;
+    if (county > N64_JOYSTICK_MAX)
+        county = N64_JOYSTICK_MAX;
 
-    if (county < N64_JOSTICK_MIN)
-        county = N64_JOSTICK_MIN;
+    if (county < N64_JOYSTICK_MIN)
+        county = N64_JOYSTICK_MIN;
 }
 
 void button_task()
@@ -62,7 +62,7 @@ void button_task()
     {
         g_button_data.t_zl      = !gpio_get_level(GPIO_BTN_L2) ||                                                   // Only ZL **N64 ZL (Z)
                                 (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_L1));        // ZL = (+) + L To SNES
-        g_button_data.t_zr      = (JOSTICK_TYPE == N64_J) ? !gpio_get_level(GPIO_BTN_R2) :                          // **N64 C-DOWN
+        g_button_data.t_zr      = (JOYSTICK_TYPE == N64_J) ? !gpio_get_level(GPIO_BTN_R2) :                          // **N64 C-DOWN
                                 !gpio_get_level(GPIO_BTN_R2) ||                                                     // Only ZR
                                 (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));        // ZR = (+) + R To SNES/N64
     }
@@ -88,9 +88,9 @@ void button_task()
     g_button_data.b_home    = read_button(regread, GPIO_BTN_HOME) ||                                                // Only Home
                             (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_DPAD_RIGHT));    // Home = (+) + RIGHT
 
-    g_button_data.sb_left   = JOSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_L3) : 
+    g_button_data.sb_left   = JOYSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_L3) : 
                             (read_button(regread, GPIO_BTN_START) && read_button(regread, GPIO_BTN_R1));            // **N64 ZR
-    g_button_data.sb_right  = JOSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_R3) : false;                 
+    g_button_data.sb_right  = JOYSTICK_TYPE != N64_J ? read_button(regread, GPIO_BTN_R3) : false;                 
 
     regread = 0;
 }
@@ -147,7 +147,7 @@ void retroblue_init()
 
     rb_register_button_callback(button_task);
 
-    if (JOSTICK_TYPE == PRO_J)
+    if (JOYSTICK_TYPE == PRO_J)
         rb_register_stick_callback(stick_task);
     else
     {

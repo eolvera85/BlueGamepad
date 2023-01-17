@@ -18,7 +18,8 @@
     "string_view": "cpp",
     "initializer_list": "cpp",
     "regex": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "map": "cpp"
   },
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",

@@ -20,7 +20,7 @@
 #define ADC_TRIGGER_L       ADC1_CHANNEL_4  // D32 ZL - Trigger
 #define ADC_TRIGGER_R       ADC1_CHANNEL_5  // D33 ZR - Trigger
 
-#if JOSTICK_TYPE == N64_J
+#if JOYSTICK_TYPE == N64_J
     #define GPIO_BTN_L2         GPIO_NUM_21     // D21 %N64=Z  
     #define GPIO_BTN_R2         GPIO_NUM_3      // RX0 %N64=C-DOWN
 

@@ -8,7 +8,7 @@ void setup_gpios()
 {
     PIN_BIT_MASK = GPIO_BITMASK_BUTTONS;
 
-    if (JOSTICK_TYPE == PRO_J || TRIGGER_TYPE == ANALOG)
+    if (JOYSTICK_TYPE == PRO_J || TRIGGER_TYPE == ANALOG)
         adc1_config_width(ADC_WIDTH_BIT_12); //ADC_WIDTH_BIT_DEFAULT - ADC_WIDTH_BIT_12
 
 
@@ -20,7 +20,7 @@ void setup_gpios()
         PIN_BIT_MASK = GPIO_BITMASK_TRIGGERS;       
     }
 
-    if (JOSTICK_TYPE == PRO_J)
+    if (JOYSTICK_TYPE == PRO_J)
     {
         adc1_config_channel_atten(ADC_STICK_LX, ADC_ATTEN_DB_11);
         adc1_config_channel_atten(ADC_STICK_LY, ADC_ATTEN_DB_11);

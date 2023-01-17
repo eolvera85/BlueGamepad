@@ -26,7 +26,8 @@ static const char *LOG_TAG = "BLEGamepad";
 #define CHARACTERISTIC_UUID_SERIAL_NUMBER      "2A25"      // Characteristic - Serial Number String - 0x2A25
 #define CHARACTERISTIC_UUID_FIRMWARE_REVISION  "2A26"      // Characteristic - Firmware Revision String - 0x2A26
 #define CHARACTERISTIC_UUID_HARDWARE_REVISION  "2A27"      // Characteristic - Hardware Revision String - 0x2A27
-
+#define highByte(x)	((x) >> (8))
+#define lowByte(x) 	((x) & (0xff))
 
 uint8_t tempHidReportDescriptor[150];
 int hidReportDescriptorSize = 0;
@@ -87,16 +88,16 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     firmwareRevision = configuration.getFirmwareRevision();
     hardwareRevision = configuration.getHardwareRevision();
 
-	vid = configuration.getVid();   //0xe502
-	pid = configuration.getPid();   //0xbbab
+	vid = configuration.getVid();
+	pid = configuration.getPid();
 
-	uint8_t high = 0xe5; //highByte(vid);   
-	uint8_t low = 0x02; //lowByte(vid);     
+	uint8_t high = highByte(vid);
+	uint8_t low = lowByte(vid);
 
 	vid = low << 8 | high;
 
-	high = 0xbb; //highByte(pid);
-	low = 0xab; //lowByte(pid);
+	high = highByte(pid);
+	low = lowByte(pid);
 
 	pid = low << 8 | high;
 
@@ -331,21 +332,21 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
         // LOGICAL_MINIMUM (-32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMin());
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMin());
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	// Use these two lines for -32767 min
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMin());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMin());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+		    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	// Use these two lines for -32767 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMax());
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMax());
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for 255 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for +32767 max
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+		    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
@@ -433,21 +434,21 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
         // LOGICAL_MINIMUM (-32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMin());
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMin());
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMin());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMin());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
 		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMax());
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMax());
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for 255 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;		// Use these two lines for +32767 max
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;		// Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
@@ -1331,15 +1332,21 @@ bool BleGamepad::isConnected(void)
 
 void BleGamepad::setBatteryLevel(uint8_t level)
 {
-    /*
     this->batteryLevel = level;
-    if (hid != 0){
+    if (hid != 0)
+    {
         this->hid->setBatteryLevel(this->batteryLevel);
-	if (this->isConnected()){
-	    this->hid->batteryLevel()->notify();
-	}
+
+        if (this->isConnected())
+        {
+            this->hid->batteryLevel()->notify();
+        }
+		
+        if (configuration.getAutoReport())
+        {
+            sendReport();
+        }
     }
-    */
 }
 
 void BleGamepad::taskServer(void *pvParameter)

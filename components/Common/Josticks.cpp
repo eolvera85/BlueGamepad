@@ -7,32 +7,39 @@ uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uin
 
 uint16_t read_jostick_n64_retroblue(int pot_value, bool reverse_axis)
 {
-    if (pot_value >= N64_JOSTICK_DEADZONE_MIN && pot_value <= N64_JOSTICK_DEADZONE_MAX)
-        return (uint16_t)ANALOG_CENTER;
+    if (pot_value >= N64_JOYSTICK_DEADZONE_MIN && pot_value <= N64_JOYSTICK_DEADZONE_MAX)
+        return ANALOG_CENTER;
 
     if (reverse_axis)
-        return (uint16_t)map(pot_value, N64_JOSTICK_MIN, N64_JOSTICK_MAX, ANALOG_MAX, ANALOG_MIN);
+        return (uint16_t)map(pot_value, N64_JOYSTICK_MIN, N64_JOYSTICK_MAX, ANALOG_MAX, ANALOG_MIN);
     else
-        return (uint16_t)map(pot_value, N64_JOSTICK_MIN, N64_JOSTICK_MAX, ANALOG_MIN, ANALOG_MAX);
+        return (uint16_t)map(pot_value, N64_JOYSTICK_MIN, N64_JOYSTICK_MAX, ANALOG_MIN, ANALOG_MAX);
 }
 
 uint16_t read_jostick_retroblue(adc1_channel_t adc_channel, bool reverse_axis)
 {
-    if (reverse_axis)
-        return (uint16_t)map(adc1_get_raw(adc_channel), ANALOG_MIN, ANALOG_MAX, ANALOG_MAX, ANALOG_MIN);
-    else
-        return (uint16_t)map(adc1_get_raw(adc_channel), ANALOG_MIN, ANALOG_MAX, ANALOG_MIN, ANALOG_MAX);
+    uint32_t raw = 0;
+
+    for(int i = 0; i < NUMBER_SAMPLES; i++)
+    {
+        raw += adc1_get_raw(adc_channel);
+        vTaskDelay(5);
+    }
+
+    raw = raw / NUMBER_SAMPLES;
+
+    if(raw >= ANALOG_DEADZONE_MIN && raw <= ANALOG_DEADZONE_MAX)
+        return ANALOG_CENTER;
+
+    return reverse_axis ? (uint16_t)map(raw, ANALOG_MIN, ANALOG_MAX, ANALOG_MAX, ANALOG_MIN) : raw;
 }
 
 int16_t read_joystick_n64(int pot_value, bool reverse_axis)
 {
-    if (pot_value >= N64_JOSTICK_DEADZONE_MIN && pot_value <= N64_JOSTICK_DEADZONE_MAX)
-        return JOYSTICK_CEN; //pot_value = 0;
+    if (pot_value >= N64_JOYSTICK_DEADZONE_MIN && pot_value <= N64_JOYSTICK_DEADZONE_MAX)
+        return JOYSTICK_CEN;
 
-    if (reverse_axis)
-        return (int16_t)map(pot_value, N64_JOSTICK_MIN, N64_JOSTICK_MAX, JOYSTICK_MAX, JOYSTICK_MIN);
-    else
-        return (int16_t)map(pot_value, N64_JOSTICK_MIN, N64_JOSTICK_MAX, JOYSTICK_MIN, JOYSTICK_MAX);
+    return reverse_axis ? pot_value * -1 : pot_value;
 }
 
 int16_t read_joystick(adc1_channel_t adc_channel, bool reverse_axis)
@@ -48,12 +55,9 @@ int16_t read_joystick(adc1_channel_t adc_channel, bool reverse_axis)
     raw = raw / NUMBER_SAMPLES;
 
     if(raw >= ANALOG_DEADZONE_MIN && raw <= ANALOG_DEADZONE_MAX)
-        raw = ANALOG_CENTER;
+        return JOYSTICK_CEN;
 
-    if (reverse_axis)
-        return (int16_t)map(raw, ANALOG_MIN, ANALOG_MAX, JOYSTICK_MAX, JOYSTICK_MIN);
-    else
-        return (int16_t)map(raw, ANALOG_MIN, ANALOG_MAX, JOYSTICK_MIN, JOYSTICK_MAX);
+    return reverse_axis ? (int16_t)map(raw, ANALOG_MIN, ANALOG_MAX, JOYSTICK_MAX, JOYSTICK_MIN) : raw;
 }
 
 bool read_trigger_button(adc1_channel_t adc_channel, bool reverse_trigger)
@@ -71,6 +75,8 @@ int16_t read_trigger(adc1_channel_t adc_channel, bool reverse_trigger)
         vTaskDelay(5);
     }
 
+    raw = raw / NUMBER_SAMPLES;
+
     if (reverse_trigger)
     {
         if (raw >= (ANALOG_MAX - ANALOG_DEADZONE_TRIGGER) && raw <= ANALOG_MAX)
@@ -83,6 +89,6 @@ int16_t read_trigger(adc1_channel_t adc_channel, bool reverse_trigger)
         if (raw > -1 && raw <= ANALOG_DEADZONE_TRIGGER)
             return JOYSTICK_MIN;
         else
-            return (int16_t)map(raw, ANALOG_MIN, ANALOG_MAX, JOYSTICK_MIN, JOYSTICK_MAX);
+            return raw;
     }
 }
