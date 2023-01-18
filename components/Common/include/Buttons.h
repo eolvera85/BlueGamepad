@@ -32,17 +32,19 @@
 #define GPIO_BITMASK_N64        (1ULL<<GPIO_ENCODER_QX) | (1ULL<<GPIO_ENCODER_QY)
 #define GPIO_BITMASK_N64_INTR   (1ULL<<GPIO_ENCODER_IX) | (1ULL<<GPIO_ENCODER_IY)
 
+#define GPIO_BITMASK_LED   (1ULL<<GPIO_LED_SYNC) | (1ULL<<GPIO_LED_SYNC_BLE)
+
 struct dpad_s
 {
     char name[10];
-    uint8_t gpio_num_dpad;
+    gpio_num_t gpio_num_dpad;
     bool state_dpad;
 };
 
 struct buttons_s
 {
     char name[10];
-    uint8_t gpio_num;
+    gpio_num_t gpio_num;
     uint8_t physical_button;
     bool current_state;
     bool previous_state;
@@ -51,7 +53,7 @@ struct buttons_s
 struct buttons64_s
 {
     char name[10];
-    uint8_t gpio_num;
+    gpio_num_t gpio_num;
     uint8_t physical_button;
     bool current_state;
     bool previous_state;

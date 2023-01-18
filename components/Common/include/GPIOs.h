@@ -5,7 +5,7 @@
 #include "driver/gpio.h"
 #include "Parameters.h"
 
-// Jostick N64 type
+// Joystick N64 type
 #define GPIO_ENCODER_IX         GPIO_NUM_35
 #define GPIO_ENCODER_QX         GPIO_NUM_34
 #define GPIO_ENCODER_IY         GPIO_NUM_32
@@ -24,8 +24,8 @@
     #define GPIO_BTN_L2         GPIO_NUM_21     // D21 %N64=Z  
     #define GPIO_BTN_R2         GPIO_NUM_3      // RX0 %N64=C-DOWN
 
-    #define GPIO_BTN_L3         GPIO_NUM_0      // 
-    #define GPIO_BTN_R3         GPIO_NUM_0      // 
+    #define GPIO_BTN_L3         GPIO_NUM_32     // 
+    #define GPIO_BTN_R3         GPIO_NUM_33     // 
 #else
     #define GPIO_BTN_L2         GPIO_NUM_32     // D32  ZL
     #define GPIO_BTN_R2         GPIO_NUM_33     // D33  ZR

@@ -9,7 +9,7 @@ enum CONTROLLER_TYPE_E { RETROBLUE = 0, BLEGAMEPAD = 1 };
 enum PRIMARY_CONTROLLER_E { PRO = 0x03, NES = 0x09, SNES = 0x0B, N64 = 0x0C };
 
 // ************ From here change values to configure the controls ************
-// Begin Parameters Controller Type (Change *Jostick PRO/N64 - Buttons L2 R2  )
+// Begin Parameters Controller Type (Change *Joystick PRO/N64)
 
 #define PRIMARY_CONTROLLER      N64             // Values: Enum -> PRIMARY_CONTROLLER_E
 #define JOYSTICK_TYPE           N64_J           // VALUES: Enum -> JOYSTICK_TYPE_E
@@ -21,21 +21,21 @@ enum PRIMARY_CONTROLLER_E { PRO = 0x03, NES = 0x09, SNES = 0x0B, N64 = 0x0C };
     #define SECONDARY_CONTROLLER    0x02
 #endif
 
-// Josticks Switch
+// Joysticks Switch
 #define RBS_REVERSE_AXIS_LX     false
 #define RBS_REVERSE_AXIS_LY     true
 #define RBS_REVERSE_AXIS_RX     true
 #define RBS_REVERSE_AXIS_RY     false
-// Josticks Switch N64
+// Joysticks Switch N64
 #define RBS_N64_REVERSE_AXIS_LX     false
 #define RBS_N64_REVERSE_AXIS_LY     false
 
-// Josticks BleGamepad
+// Joysticks BleGamepad
 #define BLE_REVERSE_AXIS_LX     false
 #define BLE_REVERSE_AXIS_LY     false
 #define BLE_REVERSE_AXIS_RX     true
 #define BLE_REVERSE_AXIS_RY     true
-// Josticks BleGamepad N64
+// Joysticks BleGamepad N64
 #define BLE_N64_REVERSE_AXIS_LX     false
 #define BLE_N64_REVERSE_AXIS_LY     true
 
@@ -45,7 +45,7 @@ enum PRIMARY_CONTROLLER_E { PRO = 0x03, NES = 0x09, SNES = 0x0B, N64 = 0x0C };
 #define REVERSE_TRIGGER_L       true
 #define REVERSE_TRIGGER_R       true
 
-// CONTROLLER N64 ON BLUERETRO (WHY? ARE REPORT AS JOSTICK R)
+// CONTROLLER N64 ON BLUERETRO (WHY? ARE REPORT AS JOYSTICK R)
 #define REPORT_C_RIGHT_AS_BUTTON    true
 #define REPORT_C_LEFT_AS_BUTTON     true
 #define REPORT_C_UP_AS_BUTTON       true

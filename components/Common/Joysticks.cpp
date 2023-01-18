@@ -1,11 +1,11 @@
-#include "Josticks.h"
+#include "Joysticks.h"
 
 uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-uint16_t read_jostick_n64_retroblue(int pot_value, bool reverse_axis)
+uint16_t read_joystick_n64_retroblue(int pot_value, bool reverse_axis)
 {
     if (pot_value >= N64_JOYSTICK_DEADZONE_MIN && pot_value <= N64_JOYSTICK_DEADZONE_MAX)
         return ANALOG_CENTER;
@@ -16,7 +16,7 @@ uint16_t read_jostick_n64_retroblue(int pot_value, bool reverse_axis)
         return (uint16_t)map(pot_value, N64_JOYSTICK_MIN, N64_JOYSTICK_MAX, ANALOG_MIN, ANALOG_MAX);
 }
 
-uint16_t read_jostick_retroblue(adc1_channel_t adc_channel, bool reverse_axis)
+uint16_t read_joystick_retroblue(adc1_channel_t adc_channel, bool reverse_axis)
 {
     uint32_t raw = 0;
 

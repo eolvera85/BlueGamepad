@@ -4,8 +4,9 @@
 
 #include "GPIOs.h"
 #include "Buttons.h"
-#include "Josticks.h"
+#include "Joysticks.h"
 #include "Controller.h"
+#include "LED.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

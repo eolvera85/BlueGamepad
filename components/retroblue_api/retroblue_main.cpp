@@ -1,13 +1,13 @@
 #include "retroblue_main.h"
-#include "Josticks.h"
+#include "Joysticks.h"
 
 uint32_t regread = 0;
 int countx = 0;
 int county = 0;
 int pot_x = 0;
 int pot_y = 0;
-uint16_t jostick64_x = 2048;
-uint16_t jostick64_y = 2048;
+uint16_t joystick64_x = JOYSTICK_CEN;
+uint16_t joystick64_y = JOYSTICK_CEN;
 const char* TAG = "joystick_n64_task";
 
 void handleEncoderX(void * pvParameters)
@@ -98,10 +98,10 @@ void button_task()
 void stick_task()
 {
     
-    g_stick_data.lsx = read_jostick_retroblue(ADC_STICK_LX, RBS_REVERSE_AXIS_LX);
-    g_stick_data.lsy = read_jostick_retroblue(ADC_STICK_LY, RBS_REVERSE_AXIS_LY);
-    g_stick_data.rsx = read_jostick_retroblue(ADC_STICK_RX, RBS_REVERSE_AXIS_RX);
-    g_stick_data.rsy = read_jostick_retroblue(ADC_STICK_RY, RBS_REVERSE_AXIS_RY);
+    g_stick_data.lsx = read_joystick_retroblue(ADC_STICK_LX, RBS_REVERSE_AXIS_LX);
+    g_stick_data.lsy = read_joystick_retroblue(ADC_STICK_LY, RBS_REVERSE_AXIS_LY);
+    g_stick_data.rsx = PRIMARY_CONTROLLER == N64 ? ANALOG_CENTER : read_joystick_retroblue(ADC_STICK_RX, RBS_REVERSE_AXIS_RX);
+    g_stick_data.rsy = PRIMARY_CONTROLLER == N64 ? ANALOG_CENTER : read_joystick_retroblue(ADC_STICK_RY, RBS_REVERSE_AXIS_RY);
 
     return;
 }
@@ -111,16 +111,16 @@ void stick_task_n64()
     pot_x = countx;
     pot_y = county;
 
-    jostick64_x = read_jostick_n64_retroblue(pot_x, RBS_N64_REVERSE_AXIS_LX);
-    jostick64_y = read_jostick_n64_retroblue(pot_y, RBS_N64_REVERSE_AXIS_LY);
+    joystick64_x = read_joystick_n64_retroblue(pot_x, RBS_N64_REVERSE_AXIS_LX);
+    joystick64_y = read_joystick_n64_retroblue(pot_y, RBS_N64_REVERSE_AXIS_LY);
 
-    ESP_LOGI(TAG, "%sX: %d / N64:%d", "Jostick L", jostick64_x, pot_x);
-    ESP_LOGI(TAG, "%sY: %d / N64:%d", "Jostick L", jostick64_y, pot_y);
+    ESP_LOGI(TAG, "%sX: %d / N64:%d", "Joystick L", joystick64_x, pot_x);
+    ESP_LOGI(TAG, "%sY: %d / N64:%d", "Joystick L", joystick64_y, pot_y);
 
-    g_stick_data.lsx = jostick64_x;
-    g_stick_data.lsy = jostick64_y;
-    g_stick_data.rsx = 2048;
-    g_stick_data.rsy = 2048;
+    g_stick_data.lsx = joystick64_x;
+    g_stick_data.lsy = joystick64_y;
+    g_stick_data.rsx = ANALOG_CENTER;
+    g_stick_data.rsy = ANALOG_CENTER;
 
     return;
 }
@@ -142,6 +142,7 @@ void sync_button_task(void * pvParameters)
 void retroblue_init()
 {
     setup_gpios();
+    initFlashSwitch();
 
     xTaskCreatePinnedToCore(sync_button_task, "sync_button_task", 2048, NULL, 0, NULL, 0);
 
@@ -158,5 +159,6 @@ void retroblue_init()
         rb_register_stick_callback(stick_task_n64);
     }
 
-    rb_api_startController();
+    if (rb_api_startController() ==  RB_OK)
+        setLed();
 }
