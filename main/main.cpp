@@ -9,5 +9,5 @@ extern "C" void app_main()
     if (controller_type == BLEGAMEPAD)
         blegamepad_init();
     else 
-        retroblue_init();
+        hoja_switch_init();
 }

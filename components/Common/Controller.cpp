@@ -9,10 +9,7 @@ void nextController()
 {
     const char* TAG = "saveController";
 
-    if (controller_type == BLEGAMEPAD)
-        controller_type = RETROBLUE;
-    else
-        controller_type = BLEGAMEPAD;
+    controller_type = controller_type == BLEGAMEPAD ? SWITCH : BLEGAMEPAD;
 
     //Save next controller
     nvs_handle_t my_handle_write;

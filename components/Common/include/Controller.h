@@ -14,7 +14,7 @@
 #include "Parameters.h"
 #include "LED.h"
 
-void syncController(uint32_t regReadSync);
-CONTROLLER_TYPE_E readController();
+EXTERNC void syncController(uint32_t regReadSync);
+EXTERNC enum CONTROLLER_TYPE_E readController();
 
 #endif

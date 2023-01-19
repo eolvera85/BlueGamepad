@@ -1,6 +1,7 @@
 #ifndef JOYSTICKS_H
 #define JOYSTICKS_H
 
+#include "Parameters.h"
 #include "GPIOs.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -68,15 +69,15 @@ struct joystick_64_s
     int16_t previous_state_pot_y;
 };
 
-extern joystick_64_s joystick64;
-extern joysticks_s joysticks[NUM_OF_JOYSTICKS];
-extern triggers_s triggers[NUM_OF_TRIGGERS];
+extern struct joystick_64_s joystick64;
+extern struct joysticks_s joysticks[NUM_OF_JOYSTICKS];
+extern struct triggers_s triggers[NUM_OF_TRIGGERS];
 
-uint16_t read_joystick_retroblue(adc1_channel_t adc_channel, bool reverse_axis);
-uint16_t read_joystick_n64_retroblue(int pot_value, bool reverse_axis);
-int16_t read_joystick(adc1_channel_t adc_channel, bool reverse_axis);
-int16_t read_joystick_n64(int pot_value, bool reverse_axis);
-bool read_trigger_button(adc1_channel_t adc_channel, bool reverse_trigger);
-int16_t read_trigger(adc1_channel_t adc_channel, bool reverse_trigger);
+EXTERNC uint16_t read_joystick_ns(adc1_channel_t adc_channel, bool reverse_axis);
+EXTERNC uint16_t read_joystick_ns_n64(int16_t pot_value, bool reverse_axis);
+EXTERNC int16_t read_joystick(adc1_channel_t adc_channel, bool reverse_axis);
+EXTERNC int16_t read_joystick_n64(int pot_value, bool reverse_axis);
+EXTERNC bool read_trigger_button(adc1_channel_t adc_channel, bool reverse_trigger);
+EXTERNC int16_t read_trigger(adc1_channel_t adc_channel, bool reverse_trigger);
 
 #endif

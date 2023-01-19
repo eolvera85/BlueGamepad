@@ -1,0 +1,58 @@
+menu "HOJA I2C Utility"
+    config HOJA_I2C_ENABLE
+        bool "Enable I2C Communications Managed by HOJA Library"
+        default "n"
+    
+    config HOJA_GPIO_I2C_SCL
+        depends on HOJA_I2C_ENABLE
+        int "I2C SCL Pin"
+        range 0 48
+        default 22
+        help
+            Default is 22
+
+    config HOJA_GPIO_I2C_SDA
+        depends on HOJA_I2C_ENABLE
+        int "I2C SDA Pin"
+        range 0 48
+        default 21
+        help 
+            Default is 21
+endmenu
+
+menu "HOJA USB Core EFM8UB1 Companion MCU"
+    config HOJA_EFM8UB1_ENABLE
+        depends on HOJA_I2C_ENABLE
+        bool "Enable I2C communication with EFM8UB1 Companion."
+        default "n"
+        help
+            Requires companion MCU on the same PCB connected to the I2C
+            lines set up with the ESP32. 
+            I2C utility MUST be enabled in HOJA config settings.
+            See https://github.com/HandHeldLegend/HOJA-USB-EFM8UB1
+            for more information and for firmware files to flash to the EFM8UB1 MCU.
+            16KB model recommended.
+endmenu
+
+menu "HOJA GPIO Selection"
+    config HOJA_GPIO_NS_SERIAL
+        int "Nintendo Serial Pin"
+        range 0 48
+        default 17
+        help
+            Default is 17. Used for JoyBus and Data on SNES and NES.
+
+    config HOJA_GPIO_NS_CLOCK
+        int "Nintendo Clock Pin"
+        range 0 48
+        default 15
+        help
+            Default is 15. Used for NES/SNES Clock Pin.
+
+    config HOJA_GPIO_NS_LATCH
+        int "Nintendo Latch Pin"
+        range 0 48
+        default 14
+        help
+            Default is 14. Used for NES/SNES Latch Pin.
+endmenu
