@@ -22,14 +22,14 @@ void initFlashBleGamepad()
 
 void initFlashSwitch()
 {
-    gpio_led = GPIO_LED_SYNC;
+    gpio_led = GPIO_LED_SYNC_SWI;
     xTaskCreatePinnedToCore(led_task, "led_task", 1024, NULL, 5, &BlinkHandle, 1);
 }
 
 void setLed()
 {
-    if (gpio_led == GPIO_LED_SYNC)
-        vTaskDelay(600);
+    if (gpio_led == GPIO_LED_SYNC_SWI)
+        vTaskDelay(1000);
     
     vTaskDelete(BlinkHandle);
     BlinkHandle = NULL;

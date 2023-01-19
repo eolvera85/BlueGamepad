@@ -1,11 +1,17 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
+#ifdef __cplusplus
+    #define EXTERNC extern "C"
+#else
+    #define EXTERNC
+#endif
+
 //ENUMS
 enum JOYSTICK_TYPE_E { PRO_J = 1, N64_J = 2 };
 enum TRIGGER_TYPE_E { DIGITAL = 0, ANALOG = 1 };
 
-enum CONTROLLER_TYPE_E { RETROBLUE = 0, BLEGAMEPAD = 1 };
+enum CONTROLLER_TYPE_E { SWITCH = 0, BLEGAMEPAD = 1 };
 enum PRIMARY_CONTROLLER_E { PRO = 0x03, NES = 0x09, SNES = 0x0B, N64 = 0x0C };
 
 // ************ From here change values to configure the controls ************

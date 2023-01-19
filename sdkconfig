@@ -1777,6 +1777,25 @@ CONFIG_WPA_MBEDTLS_TLS_CLIENT=y
 # end of Supplicant
 
 #
+# HOJA I2C Utility
+#
+# CONFIG_HOJA_I2C_ENABLE is not set
+# end of HOJA I2C Utility
+
+#
+# HOJA USB Core EFM8UB1 Companion MCU
+#
+# end of HOJA USB Core EFM8UB1 Companion MCU
+
+#
+# HOJA GPIO Selection
+#
+CONFIG_HOJA_GPIO_NS_SERIAL=17
+CONFIG_HOJA_GPIO_NS_CLOCK=15
+CONFIG_HOJA_GPIO_NS_LATCH=14
+# end of HOJA GPIO Selection
+
+#
 # NimBLE Options
 #
 # CONFIG_BT_NIMBLE_LOG_LEVEL_CRIT is not set

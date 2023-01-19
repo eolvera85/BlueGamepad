@@ -32,7 +32,7 @@
 #define GPIO_BITMASK_N64        (1ULL<<GPIO_ENCODER_QX) | (1ULL<<GPIO_ENCODER_QY)
 #define GPIO_BITMASK_N64_INTR   (1ULL<<GPIO_ENCODER_IX) | (1ULL<<GPIO_ENCODER_IY)
 
-#define GPIO_BITMASK_LED   (1ULL<<GPIO_LED_SYNC) | (1ULL<<GPIO_LED_SYNC_BLE)
+#define GPIO_BITMASK_LED   (1ULL<<GPIO_LED_SYNC_SWI) | (1ULL<<GPIO_LED_SYNC_BLE)
 
 struct dpad_s
 {
@@ -64,7 +64,7 @@ extern dpad_s dpads[NUM_OF_DPADS * 4];
 extern buttons_s buttons[NUM_PHYSICAL_BTNS];
 extern buttons64_s buttons64[NUM_PHYSICAL_BTNS_64];
 
-bool read_button(uint32_t bytes, uint8_t bit);
-signed char get_dpad(bool up, bool down, bool left, bool right);
+EXTERNC bool read_button(uint32_t bytes, uint8_t bit);
+EXTERNC signed char get_dpad(bool up, bool down, bool left, bool right);
 
 #endif
