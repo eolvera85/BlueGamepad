@@ -517,6 +517,10 @@ hoja_err_t util_bluetooth_init(uint8_t *mac_address)
         mode = ESP_BT_MODE_BLE;
     #endif
 
+    ESP_LOGI(TAG, "BT Classic HID only enabled. Release BLE Memory");
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+    mode = ESP_BT_MODE_CLASSIC_BT;
+
     esp_bt_controller_config_t def_config = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     memcpy(&bt_cfg, &def_config, sizeof(esp_bt_controller_config_t));
 

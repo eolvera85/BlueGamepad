@@ -123,11 +123,24 @@ void local_analog_cb_n64(hoja_analog_data_s *analog_data)
 void local_event_cb(hoja_event_type_t type, uint8_t evt, uint8_t param)
 {
     const char* TAG = "local_event_cb";
+    uint32_t regEvent = 0;
 
-    // This will call when the select button is held.
-    if (type == HOJA_EVT_SYSTEM && evt == HEVT_API_SHUTDOWN)
+    if (type == HOJA_EVT_BT && evt == HEVT_BT_DISCONNECT)
     {
-        ESP_LOGI(TAG, "Sleep event triggered!");
+        hoja_set_core(HOJA_CORE_NS);
+        
+        while (true)
+        {
+            regEvent = regread_low == 0 ? REG_READ(GPIO_IN_REG) : regread_low;
+
+            if (!util_getbit(regread_low, GPIO_BTN_START))
+            {
+                while(hoja_start_core() != HOJA_OK)
+                    vTaskDelay(100 / portTICK_PERIOD_MS);
+
+                break;
+            }
+        }
     }
 }
 
@@ -147,8 +160,6 @@ void sync_button_task(void * pvParameters)
 
 void hoja_switch_init()
 {
-    hoja_err_t err;
-
     setup_gpios();
     initFlashSwitch();
 
@@ -169,9 +180,7 @@ void hoja_switch_init()
 
     hoja_register_event_callback(local_event_cb);
 
-    err = hoja_init();
-
-    if (err != HOJA_OK)
+    if (hoja_init() != HOJA_OK)
         ESP_LOGE(TAG, "Failed to initialize HOJA.");
     else
     {

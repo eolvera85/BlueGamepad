@@ -58,7 +58,7 @@
 #define ADC_BATTERY_LEVEL   ADC2_CHANNEL_2  // D2
 
 #define GPIO_LED_SYNC_BLE   GPIO_NUM_0      // D0
-#define GPIO_LED_SYNC_SWI   GPIO_NUM_1      // TX0
+#define GPIO_LED_SYNC_SWI   GPIO_NUM_0      // TX0
 #define GPIO_BTN_SYNC       GPIO_NUM_15     // D15
 
 extern uint64_t PIN_BIT_MASK;
