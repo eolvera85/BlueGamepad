@@ -12,6 +12,7 @@
 #include "freertos/semphr.h"
 
 #include "Parameters.h"
+#include "LED.h"
 
 void syncController(uint32_t regReadSync);
 CONTROLLER_TYPE_E readController();

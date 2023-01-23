@@ -25,6 +25,8 @@ void nextController()
 
     ESP_LOGI(TAG, "Saved Next Controller Type: %d", controller_type);
 
+    stopLED();
+    
     esp_restart();    
 }
 

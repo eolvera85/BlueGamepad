@@ -17,6 +17,7 @@
 #define BTN_NUM_R2      BUTTON_10
 #define BTN_NUM_SELECT  BUTTON_11
 #define BTN_NUM_START   BUTTON_12
+#define BTN_NUM_MENU    BUTTON_13
 #define BTN_NUM_L3      BUTTON_14
 #define BTN_NUM_R3      BUTTON_15
 

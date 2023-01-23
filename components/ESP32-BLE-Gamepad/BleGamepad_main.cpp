@@ -50,7 +50,7 @@ buttons64_s buttons64[NUM_PHYSICAL_BTNS_64] =
     { "C-Up", GPIO_BTN_SQUARE, BTN_NUM_C, false, false, REPORT_C_UP_AS_BUTTON },
     { "C-Down", GPIO_BTN_R2, BTN_NUM_B, false, false, REPORT_C_DOWN_AS_BUTTON },
     { "C-Left", GPIO_BTN_TRIANGLE, BTN_NUM_Y, false, false, REPORT_C_LEFT_AS_BUTTON },  
-    { "C-Right", GPIO_BTN_SELECT, BTN_NUM_R2, false, false, REPORT_C_RIGHT_AS_BUTTON }
+    { "C-Right", GPIO_BTN_SELECT, BTN_NUM_Z, false, false, REPORT_C_RIGHT_AS_BUTTON }
 };
 
 joysticks_s joysticks[NUM_OF_JOYSTICKS] =

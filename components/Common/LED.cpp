@@ -16,22 +16,33 @@ void led_task(void * pvParameters)
 
 void initFlashBleGamepad()
 {
+    gpio_set_level(GPIO_LED_SYNC, 0);
+
     gpio_led = GPIO_LED_SYNC_BLE;
     xTaskCreatePinnedToCore(led_task, "led_task", 1024, NULL, 5, &BlinkHandle, 1);
 }
 
 void initFlashSwitch()
 {
+    gpio_set_level(GPIO_LED_SYNC_BLE, 0);
+
     gpio_led = GPIO_LED_SYNC;
     xTaskCreatePinnedToCore(led_task, "led_task", 1024, NULL, 5, &BlinkHandle, 1);
+}
+
+void stopLED()
+{
+    gpio_set_level(gpio_led, 0);
 }
 
 void setLed()
 {
     if (gpio_led == GPIO_LED_SYNC)
-        vTaskDelay(600);
+        vTaskDelay(1000);
     
-    vTaskDelete(BlinkHandle);
+    if (BlinkHandle != NULL)
+        vTaskDelete(BlinkHandle);
+
     BlinkHandle = NULL;
     gpio_set_level(gpio_led, 1);
 }

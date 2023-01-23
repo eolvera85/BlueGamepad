@@ -9,5 +9,6 @@
 void initFlashBleGamepad();
 void initFlashSwitch();
 void setLed();
+void stopLED();
 
 #endif
