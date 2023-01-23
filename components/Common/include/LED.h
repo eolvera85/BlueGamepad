@@ -8,9 +8,9 @@
 #include "freertos/semphr.h"
 
 
-void initFlashBleGamepad();
-void initFlashSwitch();
-void setLed();
-void stopLED();
+EXTERNC void initFlashBleGamepad();
+EXTERNC void initFlashSwitch();
+EXTERNC void setLed();
+EXTERNC void stopLED();
 
 #endif

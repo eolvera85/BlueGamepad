@@ -185,7 +185,9 @@ void hoja_switch_init()
     else
     {
         hoja_set_core(HOJA_CORE_NS);
-        hoja_start_core();
+
+        while(hoja_start_core() != HOJA_OK)
+            vTaskDelay(100 / portTICK_PERIOD_MS);
 
         setLed();
     }

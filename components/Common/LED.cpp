@@ -16,7 +16,7 @@ void led_task(void * pvParameters)
 
 void initFlashBleGamepad()
 {
-    gpio_set_level(GPIO_LED_SYNC, 0);
+    gpio_set_level(GPIO_LED_SYNC_SWI, 0);
 
     gpio_led = GPIO_LED_SYNC_BLE;
     xTaskCreatePinnedToCore(led_task, "led_task", 1024, NULL, 5, &BlinkHandle, 1);
