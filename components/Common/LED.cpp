@@ -24,13 +24,9 @@ void initFlashBleGamepad()
 
 void initFlashSwitch()
 {
-<<<<<<< HEAD
     gpio_set_level(GPIO_LED_SYNC_BLE, 0);
 
-    gpio_led = GPIO_LED_SYNC;
-=======
     gpio_led = GPIO_LED_SYNC_SWI;
->>>>>>> 15d8900 (Update HOJA)
     xTaskCreatePinnedToCore(led_task, "led_task", 1024, NULL, 5, &BlinkHandle, 1);
 }
 
@@ -41,11 +37,7 @@ void stopLED()
 
 void setLed()
 {
-<<<<<<< HEAD
-    if (gpio_led == GPIO_LED_SYNC)
-=======
     if (gpio_led == GPIO_LED_SYNC_SWI)
->>>>>>> 15d8900 (Update HOJA)
         vTaskDelay(1000);
     
     if (BlinkHandle != NULL)

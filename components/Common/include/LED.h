@@ -7,15 +7,10 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
-<<<<<<< HEAD
+
 void initFlashBleGamepad();
 void initFlashSwitch();
 void setLed();
 void stopLED();
-=======
-EXTERNC void initFlashBleGamepad();
-EXTERNC void initFlashSwitch();
-EXTERNC void setLed();
->>>>>>> 15d8900 (Update HOJA)
 
 #endif
